@@ -102,10 +102,6 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 ## 🔐 Admin Access
 
-### Default Admin Account
-- **Email**: `asifmahmud053@gmail.com`
-- **Password**: `admin*diuEsports`
-
 ### Admin Panel Features
 - **Dashboard**: Overview and quick actions
 - **Tournaments**: Event creation and management
@@ -114,6 +110,8 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 - **Sponsors**: Partner showcase management
 - **Countdown**: Event timer configuration
 - **Settings**: System configuration
+
+**Note**: Admin credentials are configured during setup and should never be committed to version control.
 
 ## 📁 Project Structure
 
