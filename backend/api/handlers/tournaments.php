@@ -16,9 +16,9 @@ class TournamentsHandler {
      */
     public function getAll() {
         try {
-            // Temporarily remove the games table join to fix the API
-            $sql = "SELECT t.*, 'Unknown Game' as game_name, 'Unknown' as genre 
+            $sql = "SELECT t.*, g.name as game_name, g.genre 
                     FROM tournaments t 
+                    LEFT JOIN games g ON t.game_id = g.id 
                     ORDER BY t.start_date DESC";
             $tournaments = $this->db->queryAll($sql);
             
@@ -40,9 +40,9 @@ class TournamentsHandler {
      */
     public function get($id) {
         try {
-            // Temporarily remove the games table join to fix the API
-            $sql = "SELECT t.*, 'Unknown Game' as game_name, 'Unknown' as genre 
+            $sql = "SELECT t.*, g.name as game_name, g.genre 
                     FROM tournaments t 
+                    LEFT JOIN games g ON t.game_id = g.id 
                     WHERE t.id = ?";
             $tournament = $this->db->querySingle($sql, [$id]);
             
@@ -208,39 +208,309 @@ class TournamentsHandler {
     public function delete($id) {
         try {
             // Check if tournament exists
-            $existing = $this->db->querySingle("SELECT id, poster_url FROM tournaments WHERE id = ?", [$id]);
-            if (!$existing) {
+            $tournament = $this->get($id);
+            if (!$tournament['success']) {
+                return $tournament;
+            }
+            
+            // Delete tournament
+            $sql = "DELETE FROM tournaments WHERE id = ?";
+            $this->db->execute($sql, [$id]);
+            
+            return [
+                'success' => true,
+                'message' => 'Tournament deleted successfully'
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Failed to delete tournament: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Handle POST actions
+     */
+    public function postAction($action) {
+        switch ($action) {
+            case 'register':
+                return $this->register();
+            default:
+                return [
+                    'success' => false,
+                    'message' => 'Invalid action'
+                ];
+        }
+    }
+
+    /**
+     * Register for a tournament
+     */
+    public function register() {
+        try {
+            $input = json_decode(file_get_contents('php://input'), true);
+            
+            // Debug: Log the received input
+            error_log("Tournament registration received: " . print_r($input, true));
+            
+            // Validate required fields
+            $required = ['tournament_id', 'team_name', 'team_type', 'captain_name', 'captain_email', 'captain_game_username'];
+            foreach ($required as $field) {
+                if (empty($input[$field])) {
+                    return [
+                        'success' => false,
+                        'message' => "Field '$field' is required"
+                    ];
+                }
+            }
+            
+            // Validate team type
+            $validTypes = ['solo', 'duo', 'squad'];
+            if (!in_array($input['team_type'], $validTypes)) {
+                return [
+                    'success' => false,
+                    'message' => 'Invalid team type'
+                ];
+            }
+            
+            // Validate team members based on team type
+            $requiredMembers = $input['team_type'] === 'solo' ? 0 : 
+                             ($input['team_type'] === 'duo' ? 1 : 3);
+            
+            if (isset($input['team_members']) && count($input['team_members']) !== $requiredMembers) {
+                return [
+                    'success' => false,
+                    'message' => "Please add {$requiredMembers} team member(s) for {$input['team_type']} team"
+                ];
+            }
+            
+            // Validate team members have required fields
+            if (isset($input['team_members']) && is_array($input['team_members'])) {
+                foreach ($input['team_members'] as $member) {
+                    if (empty($member['player_name']) || empty($member['game_username'])) {
+                        return [
+                            'success' => false,
+                            'message' => 'All team members must have name and game username'
+                        ];
+                    }
+                }
+            }
+            
+            // Check if tournament exists and is open for registration
+            $tournament = $this->get($input['tournament_id']);
+            if (!$tournament['success']) {
                 return [
                     'success' => false,
                     'message' => 'Tournament not found'
                 ];
             }
             
-            // Delete associated poster file
-            if ($existing['poster_url']) {
-                $this->deleteFile($existing['poster_url']);
-            }
-            
-            // Delete tournament
-            $sql = "DELETE FROM tournaments WHERE id = ?";
-            $result = $this->db->execute($sql, [$id]);
-            
-            if ($result !== false) {
-                return [
-                    'success' => true,
-                    'data' => ['id' => $id],
-                    'message' => 'Tournament deleted successfully'
-                ];
-            } else {
+            $tournamentData = $tournament['data'];
+            if ($tournamentData['status'] !== 'upcoming') {
                 return [
                     'success' => false,
-                    'message' => 'Failed to delete tournament'
+                    'message' => 'Tournament is not open for registration'
                 ];
             }
+            
+            // Check if tournament is full
+            if ($tournamentData['max_participants'] && 
+                $tournamentData['current_participants'] >= $tournamentData['max_participants']) {
+                return [
+                    'success' => false,
+                    'message' => 'Tournament is full'
+                ];
+            }
+            
+            // Start transaction
+            $this->db->beginTransaction();
+            
+            try {
+                // Insert registration
+                $sql = "INSERT INTO tournament_registrations 
+                        (tournament_id, team_name, team_type, captain_name, captain_email, 
+                         captain_phone, captain_discord, captain_student_id, captain_department, captain_semester) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                
+                $registrationId = $this->db->execute($sql, [
+                    $input['tournament_id'],
+                    $input['team_name'],
+                    $input['team_type'],
+                    $input['captain_name'],
+                    $input['captain_email'],
+                    $input['captain_phone'] ?? null,
+                    $input['captain_discord'] ?? null,
+                    $input['captain_student_id'] ?? null,
+                    $input['captain_department'] ?? null,
+                    $input['captain_semester'] ?? null
+                ]);
+                
+                // Insert captain as first team member
+                $sql = "INSERT INTO tournament_team_members 
+                        (registration_id, player_name, player_email, player_phone, player_discord, 
+                         player_student_id, player_department, player_semester, player_role, game_username) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'captain', ?)";
+                
+                $this->db->execute($sql, [
+                    $registrationId,
+                    $input['captain_name'],
+                    $input['captain_email'],
+                    $input['captain_phone'] ?? null,
+                    $input['captain_discord'] ?? null,
+                    $input['captain_student_id'] ?? null,
+                    $input['captain_department'] ?? null,
+                    $input['captain_semester'] ?? null,
+                    $input['captain_game_username'] ?? '' // Game username is required
+                ]);
+                
+                // Insert additional team members if provided
+                if (isset($input['team_members']) && is_array($input['team_members'])) {
+                    foreach ($input['team_members'] as $member) {
+                        if (!empty($member['player_name']) && !empty($member['game_username'])) {
+                            $sql = "INSERT INTO tournament_team_members 
+                                    (registration_id, player_name, player_email, player_phone, player_discord, 
+                                     player_student_id, player_department, player_semester, player_role, game_username) 
+                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                            
+                            $this->db->execute($sql, [
+                                $registrationId,
+                                $member['player_name'],
+                                $member['player_email'] ?? null,
+                                $member['player_phone'] ?? null,
+                                $member['player_discord'] ?? null,
+                                $member['player_student_id'] ?? null,
+                                $member['player_department'] ?? null,
+                                $member['player_semester'] ?? null,
+                                $member['player_role'] ?? 'member',
+                                $member['game_username'] ?? '' // Game username is required
+                            ]);
+                        }
+                    }
+                }
+                
+                // Update tournament participant count
+                $sql = "UPDATE tournaments SET current_participants = current_participants + 1 WHERE id = ?";
+                $this->db->execute($sql, [$input['tournament_id']]);
+                
+                $this->db->commit();
+                
+                return [
+                    'success' => true,
+                    'message' => 'Tournament registration successful',
+                    'data' => ['registration_id' => $registrationId]
+                ];
+                
+            } catch (Exception $e) {
+                $this->db->rollback();
+                throw $e;
+            }
+            
         } catch (Exception $e) {
             return [
                 'success' => false,
-                'message' => 'Failed to delete tournament: ' . $e->getMessage()
+                'message' => 'Failed to register for tournament: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Get tournament registrations
+     */
+    public function getRegistrations($tournamentId) {
+        try {
+            $sql = "SELECT tr.*, 
+                           t.name as tournament_name,
+                           t.game_id,
+                           g.name as game_name,
+                           g.genre
+                    FROM tournament_registrations tr
+                    JOIN tournaments t ON tr.tournament_id = t.id
+                    LEFT JOIN games g ON t.game_id = g.id
+                    WHERE tr.tournament_id = ?
+                    ORDER BY tr.registration_date DESC";
+            
+            $registrations = $this->db->queryAll($sql, [$tournamentId]);
+            
+            // Get team members for each registration
+            foreach ($registrations as &$registration) {
+                $sql = "SELECT * FROM tournament_team_members WHERE registration_id = ? ORDER BY player_role, id";
+                $registration['team_members'] = $this->db->queryAll($sql, [$registration['id']]);
+            }
+            
+            return [
+                'success' => true,
+                'data' => $registrations,
+                'message' => 'Registrations retrieved successfully'
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Failed to retrieve registrations: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Update registration status
+     */
+    public function updateRegistrationStatus($registrationId, $status) {
+        try {
+            $validStatuses = ['pending', 'approved', 'rejected'];
+            if (!in_array($status, $validStatuses)) {
+                return [
+                    'success' => false,
+                    'message' => 'Invalid status'
+                ];
+            }
+            
+            $sql = "UPDATE tournament_registrations SET status = ? WHERE id = ?";
+            $this->db->execute($sql, [$status, $registrationId]);
+            
+            return [
+                'success' => true,
+                'message' => 'Registration status updated successfully'
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Failed to update registration status: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Get all registrations across all tournaments
+     */
+    public function getAllRegistrations() {
+        try {
+            $sql = "SELECT tr.*, 
+                           t.name as tournament_name,
+                           t.game_id,
+                           g.name as game_name,
+                           g.genre
+                    FROM tournament_registrations tr
+                    JOIN tournaments t ON tr.tournament_id = t.id
+                    LEFT JOIN games g ON t.game_id = g.id
+                    ORDER BY tr.registration_date DESC";
+            
+            $registrations = $this->db->queryAll($sql);
+            
+            // Get team members for each registration
+            foreach ($registrations as &$registration) {
+                $sql = "SELECT * FROM tournament_team_members WHERE registration_id = ? ORDER BY player_role, id";
+                $registration['team_members'] = $this->db->queryAll($sql, [$registration['id']]);
+            }
+            
+            return [
+                'success' => true,
+                'data' => $registrations,
+                'message' => 'All registrations retrieved successfully'
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Failed to retrieve registrations: ' . $e->getMessage()
             ];
         }
     }
@@ -271,9 +541,9 @@ class TournamentsHandler {
      */
     private function getByStatus($status) {
         try {
-            // Temporarily remove the games table join to fix the API
-            $sql = "SELECT t.*, 'Unknown Game' as game_name, 'Unknown' as genre 
+            $sql = "SELECT t.*, g.name as game_name, g.genre 
                     FROM tournaments t 
+                    LEFT JOIN games g ON t.game_id = g.id 
                     WHERE t.status = ? 
                     ORDER BY t.start_date ASC";
             $tournaments = $this->db->queryAll($sql, [$status]);
@@ -296,9 +566,9 @@ class TournamentsHandler {
      */
     private function getByGame($game_id) {
         try {
-            // Temporarily remove the games table join to fix the API
-            $sql = "SELECT t.*, 'Unknown Game' as game_name, 'Unknown' as genre 
+            $sql = "SELECT t.*, g.name as game_name, g.genre 
                     FROM tournaments t 
+                    LEFT JOIN games g ON t.game_id = g.id 
                     WHERE t.game_id = ? 
                     ORDER BY t.start_date DESC";
             $tournaments = $this->db->queryAll($sql, [$game_id]);

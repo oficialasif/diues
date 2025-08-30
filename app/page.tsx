@@ -62,7 +62,7 @@ export default function Home() {
       </section>
 
       {/* Events & News */}
-      <section className="relative py-20 bg-dark">
+      <section id="events" className="relative py-20 bg-dark">
         <EventsNews />
       </section>
 

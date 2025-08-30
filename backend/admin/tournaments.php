@@ -14,6 +14,52 @@ $action = $_GET['action'] ?? 'list';
 $message = '';
 $error = '';
 
+// Get tournament registrations if viewing registrations
+$registrations = [];
+$current_tournament = null;
+if ($action === 'view_registrations' && isset($_GET['id'])) {
+    try {
+        $tournament_id = intval($_GET['id']);
+        $current_tournament = $database->querySingle("
+            SELECT t.*, g.name as game_name, g.genre 
+            FROM tournaments t 
+            LEFT JOIN games g ON t.game_id = g.id 
+            WHERE t.id = ?
+        ", [$tournament_id]);
+        
+        if ($current_tournament) {
+            $registrations = $database->queryAll("
+                SELECT tr.*, 
+                       t.name as tournament_name,
+                       t.game_id,
+                       g.name as game_name,
+                       g.genre
+                FROM tournament_registrations tr
+                JOIN tournaments t ON tr.tournament_id = t.id
+                LEFT JOIN games g ON t.game_id = g.id
+                WHERE tr.tournament_id = ?
+                ORDER BY tr.registration_date DESC
+            ", [$tournament_id]);
+            
+            // Get team members for each registration
+            foreach ($registrations as &$registration) {
+                $team_members = $database->queryAll("
+                    SELECT * FROM tournament_team_members 
+                    WHERE registration_id = ? 
+                    ORDER BY player_role, id
+                ", [$registration['id']]);
+                $registration['team_members'] = $team_members;
+            }
+        } else {
+            $error = 'Tournament not found.';
+            $action = 'list';
+        }
+    } catch (Exception $e) {
+        $error = 'Error loading registrations: ' . $e->getMessage();
+        $action = 'list';
+    }
+}
+
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Debug: Log the POST data
@@ -339,13 +385,16 @@ if ($action === 'edit' && isset($_GET['id'])) {
                                         </td>
                                         <td class="py-4 px-4">
                                             <div class="flex space-x-2">
-                                                <a href="?action=edit&id=<?php echo $tournament['id']; ?>" class="text-blue-400 hover:text-blue-300">
+                                                <a href="?action=view_registrations&id=<?php echo $tournament['id']; ?>" class="text-green-400 hover:text-green-300" title="View Registrations">
+                                                    <i class="fas fa-users"></i>
+                                                </a>
+                                                <a href="?action=edit&id=<?php echo $tournament['id']; ?>" class="text-blue-400 hover:text-blue-300" title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
                                                 <form method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this tournament?')" id="deleteForm_<?php echo $tournament['id']; ?>">
                                                     <input type="hidden" name="id" value="<?php echo $tournament['id']; ?>">
                                                     <input type="hidden" name="action" value="delete">
-                                                    <button type="submit" class="text-red-400 hover:text-red-300" onclick="console.log('Delete button clicked for tournament ID: <?php echo $tournament['id']; ?>')">
+                                                    <button type="submit" class="text-red-400 hover:text-red-300" onclick="console.log('Delete button clicked for tournament ID: <?php echo $tournament['id']; ?>')" title="Delete">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
@@ -358,6 +407,157 @@ if ($action === 'edit' && isset($_GET['id'])) {
                     </table>
                 </div>
             </div>
+        <?php elseif ($action === 'view_registrations'): ?>
+            <!-- View Registrations -->
+            <div class="bg-gray-800 bg-opacity-50 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-2xl font-semibold text-white mb-2">
+                            Tournament Registrations
+                        </h2>
+                        <p class="text-gray-300">
+                            <?php echo htmlspecialchars($current_tournament['name']); ?> - 
+                            <?php echo htmlspecialchars($current_tournament['game_name']); ?> 
+                            (<?php echo htmlspecialchars($current_tournament['genre']); ?>)
+                        </p>
+                    </div>
+                    <a href="?action=list" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to Tournaments
+                    </a>
+                </div>
+
+                <?php if (empty($registrations)): ?>
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">📝</div>
+                        <h3 class="text-xl font-semibold text-gray-300 mb-2">No Registrations Yet</h3>
+                        <p class="text-gray-400">This tournament hasn't received any registrations yet.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-gray-700 rounded-lg overflow-hidden">
+                            <thead class="bg-gray-600">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Team</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Captain</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Contact</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-600">
+                                <?php foreach ($registrations as $registration): ?>
+                                    <tr class="hover:bg-gray-600 transition-colors">
+                                        <td class="px-6 py-4">
+                                            <div class="font-medium text-white"><?php echo htmlspecialchars($registration['team_name']); ?></div>
+                                            <div class="text-sm text-gray-400">
+                                                <?php echo count($registration['team_members']); ?> member(s)
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 text-xs rounded-full font-medium 
+                                                <?php 
+                                                echo ($registration['team_type'] === 'solo') ? 'bg-blue-900/30 text-blue-400 border border-blue-500' :
+                                                     (($registration['team_type'] === 'duo') ? 'bg-green-900/30 text-green-400 border border-green-500' :
+                                                     'bg-purple-900/30 text-purple-400 border border-purple-500');
+                                                ?>">
+                                                <?php echo ucfirst($registration['team_type']); ?>
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-white"><?php echo htmlspecialchars($registration['captain_name']); ?></div>
+                                            <?php if ($registration['captain_student_id']): ?>
+                                                <div class="text-sm text-gray-400">ID: <?php echo htmlspecialchars($registration['captain_student_id']); ?></div>
+                                            <?php endif; ?>
+                                            <?php if ($registration['captain_department']): ?>
+                                                <div class="text-sm text-gray-400"><?php echo htmlspecialchars($registration['captain_department']); ?></div>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm">
+                                                <div class="text-white"><?php echo htmlspecialchars($registration['captain_email']); ?></div>
+                                                <?php if ($registration['captain_phone']): ?>
+                                                    <div class="text-gray-400"><?php echo htmlspecialchars($registration['captain_phone']); ?></div>
+                                                <?php endif; ?>
+                                                <?php if ($registration['captain_discord']): ?>
+                                                    <div class="text-gray-400">Discord: <?php echo htmlspecialchars($registration['captain_discord']); ?></div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 text-xs rounded-full font-medium 
+                                                <?php 
+                                                echo ($registration['status'] === 'pending') ? 'bg-yellow-900/30 text-yellow-400 border border-yellow-500' :
+                                                     (($registration['status'] === 'approved') ? 'bg-green-900/30 text-green-400 border border-green-500' :
+                                                     'bg-red-900/30 text-red-400 border border-red-500');
+                                                ?>">
+                                                <?php echo ucfirst($registration['status']); ?>
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-300">
+                                            <?php echo date('M j, Y', strtotime($registration['registration_date'])); ?>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <button 
+                                                onclick="toggleTeamDetails(<?php echo $registration['id']; ?>)"
+                                                class="text-blue-400 hover:text-blue-300 transition-colors"
+                                                title="View Team Details"
+                                            >
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <!-- Team Details Row -->
+                                    <tr id="team-details-<?php echo $registration['id']; ?>" class="hidden bg-gray-800">
+                                        <td colspan="7" class="px-6 py-4">
+                                            <div class="space-y-4">
+                                                <h4 class="font-semibold text-white">Team Members</h4>
+                                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                    <?php foreach ($registration['team_members'] as $member): ?>
+                                                        <div class="bg-gray-700 rounded-lg p-3 border border-gray-600">
+                                                            <div class="flex items-center justify-between mb-2">
+                                                                <span class="font-medium text-white"><?php echo htmlspecialchars($member['player_name']); ?></span>
+                                                                <span class="px-2 py-1 text-xs rounded-full 
+                                                                    <?php 
+                                                                    echo ($member['player_role'] === 'captain') ? 'bg-green-900/30 text-green-400 border border-green-500' :
+                                                                         (($member['player_role'] === 'substitute') ? 'bg-orange-900/30 text-orange-400 border border-orange-500' :
+                                                                         'bg-blue-900/30 text-blue-400 border border-blue-500');
+                                                                    ?>">
+                                                                    <?php echo ucfirst($member['player_role']); ?>
+                                                                </span>
+                                                            </div>
+                                                            <?php if ($member['player_email']): ?>
+                                                                <div class="text-sm text-gray-400"><?php echo htmlspecialchars($member['player_email']); ?></div>
+                                                            <?php endif; ?>
+                                                            <?php if ($member['player_phone']): ?>
+                                                                <div class="text-sm text-gray-400"><?php echo htmlspecialchars($member['player_phone']); ?></div>
+                                                            <?php endif; ?>
+                                                            <?php if ($member['player_discord']): ?>
+                                                                <div class="text-sm text-gray-400">Discord: <?php echo htmlspecialchars($member['player_discord']); ?></div>
+                                                            <?php endif; ?>
+                                                            <?php if ($member['player_student_id']): ?>
+                                                                <div class="text-sm text-gray-400">ID: <?php echo htmlspecialchars($member['player_student_id']); ?></div>
+                                                            <?php endif; ?>
+                                                            <?php if ($member['player_department']): ?>
+                                                                <div class="text-sm text-gray-400"><?php echo htmlspecialchars($member['player_department']); ?></div>
+                                                            <?php endif; ?>
+                                                            <?php if ($member['player_semester']): ?>
+                                                                <div class="text-sm text-gray-400"><?php echo htmlspecialchars($member['player_semester']); ?></div>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+
         <?php elseif ($action === 'add' || $action === 'edit'): ?>
             <!-- Add/Edit Form -->
             <div class="bg-gray-800 bg-opacity-50 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
@@ -494,6 +694,14 @@ if ($action === 'edit' && isset($_GET['id'])) {
                 });
             });
         });
+        
+        // Toggle team details
+        function toggleTeamDetails(registrationId) {
+            const detailsRow = document.getElementById(`team-details-${registrationId}`);
+            if (detailsRow) {
+                detailsRow.classList.toggle('hidden');
+            }
+        }
     </script>
 </body>
 </html>

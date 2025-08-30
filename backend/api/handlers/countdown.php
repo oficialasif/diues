@@ -8,7 +8,7 @@ class CountdownHandler {
     private $db;
 
     public function __construct($database) {
-        $this->db = $database->getConnection();
+        $this->db = $database;
     }
 
     /**
@@ -17,9 +17,7 @@ class CountdownHandler {
     public function get() {
         try {
             $sql = "SELECT * FROM event_countdown_settings WHERE is_active = 1 ORDER BY id DESC LIMIT 1";
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute();
-            $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+            $settings = $this->db->querySingle($sql);
             
             if (!$settings) {
                 // Return default settings if none exist
@@ -65,8 +63,7 @@ class CountdownHandler {
             }
 
             // Deactivate all existing settings
-            $stmt = $this->db->prepare("UPDATE event_countdown_settings SET is_active = 0");
-            $stmt->execute();
+            $this->db->execute("UPDATE event_countdown_settings SET is_active = 0");
 
             // Insert new settings
             $sql = "INSERT INTO event_countdown_settings (status_text, custom_message, target_date, is_active, show_countdown, countdown_type) VALUES (?, ?, ?, 1, ?, ?)";
@@ -78,8 +75,7 @@ class CountdownHandler {
                 $data['countdown_type'] ?? 'days'
             ];
 
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute($params);
+            $this->db->execute($sql, $params);
 
             return [
                 'success' => true,
@@ -100,9 +96,7 @@ class CountdownHandler {
         try {
             // Return the active countdown setting for frontend
             $sql = "SELECT * FROM event_countdown_settings WHERE is_active = 1 ORDER BY id DESC LIMIT 1";
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute();
-            $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+            $settings = $this->db->querySingle($sql);
             
             if (!$settings) {
                 // Return null data if no active countdown exists
@@ -132,9 +126,7 @@ class CountdownHandler {
     public function getAdminAll() {
         try {
             $sql = "SELECT * FROM event_countdown_settings ORDER BY created_at DESC";
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute();
-            $settings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $settings = $this->db->queryAll($sql);
 
             return [
                 'success' => true,
@@ -155,8 +147,7 @@ class CountdownHandler {
     public function delete($id) {
         try {
             $sql = "DELETE FROM event_countdown_settings WHERE id = ?";
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([$id]);
+            $this->db->execute($sql, [$id]);
 
             return [
                 'success' => true,

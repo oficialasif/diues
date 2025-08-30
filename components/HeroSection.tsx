@@ -142,6 +142,20 @@ export default function HeroSection() {
             <Users className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
             View Gallery
           </a>
+          <a 
+            href="#events" 
+            className="neon-button group inline-flex items-center justify-center"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('events')?.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+              });
+            }}
+          >
+            <Trophy className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+            Next Event
+          </a>
         </motion.div>
 
         {/* Colorful Animated Counters */}

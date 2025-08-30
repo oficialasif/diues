@@ -6,7 +6,6 @@ $auth = new Auth(new Database());
 $auth->requireAdmin();
 
 $database = new Database();
-$db = $database->getConnection();
 
 $message = '';
 $error = '';
@@ -25,12 +24,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Status text and target date are required';
         } else {
             try {
-                $stmt = $db->prepare("UPDATE event_countdown_settings SET is_active = 0");
-                $stmt->execute();
+                $database->execute("UPDATE event_countdown_settings SET is_active = 0");
                 
                 $sql = "INSERT INTO event_countdown_settings (status_text, custom_message, target_date, is_active, show_countdown, countdown_type) VALUES (?, ?, ?, 1, ?, ?)";
-                $stmt = $db->prepare($sql);
-                $stmt->execute([$status_text, $custom_message, $target_date, $show_countdown, $countdown_type]);
+                $database->execute($sql, [$status_text, $custom_message, $target_date, $show_countdown, $countdown_type]);
                 $message = 'Countdown settings updated successfully!';
             } catch (Exception $e) {
                 $error = 'Failed to update countdown settings: ' . $e->getMessage();
@@ -41,9 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $currentSettings = null;
 try {
-    $stmt = $db->prepare("SELECT * FROM event_countdown_settings WHERE is_active = 1 ORDER BY id DESC LIMIT 1");
-    $stmt->execute();
-    $currentSettings = $stmt->fetch(PDO::FETCH_ASSOC);
+    $currentSettings = $database->querySingle("SELECT * FROM event_countdown_settings WHERE is_active = 1 ORDER BY id DESC LIMIT 1");
 } catch (Exception $e) {
     // Ignore error, will use defaults
 }
@@ -116,7 +111,6 @@ try {
                             <option value="days" <?php echo ($currentSettings['countdown_type'] ?? 'days') === 'days' ? 'selected' : ''; ?>>Days</option>
                             <option value="hours" <?php echo ($currentSettings['countdown_type'] ?? 'days') === 'hours' ? 'selected' : ''; ?>>Hours</option>
                             <option value="minutes" <?php echo ($currentSettings['countdown_type'] ?? 'days') === 'minutes' ? 'selected' : ''; ?>>Minutes</option>
-                            <option value="seconds" <?php echo ($currentSettings['countdown_type'] ?? 'days') === 'seconds' ? 'selected' : ''; ?>>Seconds</option>
                         </select>
                     </div>
                     

@@ -39,6 +39,9 @@ $resource = $segments[0] ?? '';
 $id = $segments[1] ?? null;
 $action = $segments[2] ?? null;
 
+// Debug logging
+error_log("API Debug - Path: '$path', Resource: '$resource', ID: '$id', Action: '$action', Method: '$method'");
+
 // API Response helper function
 function apiResponse($data = null, $status = 200, $message = 'Success') {
     http_response_code($status);
@@ -122,17 +125,37 @@ try {
     switch ($method) {
         case 'GET':
             if ($id && $action) {
-                $result = $handler->getAction($id, $action);
+                if ($action === 'registrations') {
+                    $result = $handler->getRegistrations($id);
+                } else {
+                    $result = $handler->getAction($id, $action);
+                }
             } elseif ($id) {
                 $result = $handler->get($id);
             } else {
-                $result = $handler->getAll();
+                if ($action === 'registrations') {
+                    $result = $handler->getAllRegistrations();
+                } else {
+                    $result = $handler->getAll();
+                }
             }
             break;
             
         case 'POST':
             if ($action) {
-                $result = $handler->postAction($action);
+                if ($action === 'register') {
+                    $result = $handler->register();
+                } else {
+                    $result = $handler->postAction($action);
+                }
+            } elseif ($id && !is_numeric($id)) {
+                // Handle cases like /tournaments/register where 'register' is not a numeric ID
+                $action = $id;
+                if ($action === 'register') {
+                    $result = $handler->register();
+                } else {
+                    $result = $handler->postAction($action);
+                }
             } else {
                 $result = $handler->create();
             }

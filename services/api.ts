@@ -1,6 +1,6 @@
 
 
-const API_BASE_URL = 'http://localhost/diuecport/backend/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost/diuecport/backend/api';
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -128,6 +128,57 @@ export interface CountdownSettings {
   updated_at?: string;
 }
 
+export interface TournamentRegistration {
+  id: number;
+  tournament_id: number;
+  team_name: string;
+  team_type: 'solo' | 'duo' | 'squad';
+  captain_name: string;
+  captain_email: string;
+  captain_phone?: string;
+  captain_discord?: string;
+  captain_student_id?: string;
+  captain_department?: string;
+  captain_semester?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  registration_date: string;
+  notes?: string;
+  tournament_name?: string;
+  game_name?: string;
+  genre?: string;
+  team_members?: TournamentTeamMember[];
+}
+
+export interface TournamentTeamMember {
+  id: number;
+  registration_id: number;
+  player_name: string;
+  player_email?: string;
+  player_phone?: string;
+  player_discord?: string;
+  player_student_id?: string;
+  player_department?: string;
+  player_semester?: string;
+  player_role: 'captain' | 'member' | 'substitute';
+  game_username: string;
+  created_at: string;
+}
+
+export interface TournamentRegistrationForm {
+  tournament_id: number;
+  team_name: string;
+  team_type: 'solo' | 'duo' | 'squad';
+  captain_name: string;
+  captain_email: string;
+  captain_phone?: string;
+  captain_discord?: string;
+  captain_student_id?: string;
+  captain_department?: string;
+  captain_semester?: string;
+  captain_game_username: string;
+  team_members?: TournamentTeamMember[];
+}
+
 class ApiService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
     const url = `${API_BASE_URL}/${endpoint}`;
@@ -163,6 +214,27 @@ class ApiService {
 
   async getTournament(id: number): Promise<Tournament> {
     const response = await this.request<Tournament>(`tournaments/${id}`);
+    return response.data;
+  }
+
+  // Tournament Registrations
+  async registerForTournament(registration: TournamentRegistrationForm): Promise<TournamentRegistration> {
+    console.log('API Service: Sending registration request:', registration);
+    const response = await this.request<TournamentRegistration>('tournaments/register', {
+      method: 'POST',
+      body: JSON.stringify(registration)
+    });
+    console.log('API Service: Received response:', response);
+    return response.data;
+  }
+
+  async getTournamentRegistrations(tournamentId: number): Promise<TournamentRegistration[]> {
+    const response = await this.request<TournamentRegistration[]>(`tournaments/${tournamentId}/registrations`);
+    return response.data;
+  }
+
+  async getAllTournamentRegistrations(): Promise<TournamentRegistration[]> {
+    const response = await this.request<TournamentRegistration[]>('tournaments/registrations');
     return response.data;
   }
 
