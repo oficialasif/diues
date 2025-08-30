@@ -1,6 +1,6 @@
 
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost/diuecport/backend/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://your-railway-project.railway.app/api';
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -77,6 +77,7 @@ export interface Sponsor {
   partnership_type: string;
   website_url: string;
   benefits: string;
+  description?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;

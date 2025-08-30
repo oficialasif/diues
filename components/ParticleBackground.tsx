@@ -1,18 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
-import { useParticles } from 'react-particles'
-import { loadFull } from 'tsparticles'
-import type { Engine } from 'tsparticles-engine'
-
 const ParticleBackground = () => {
-  const particlesInit = useCallback(async (engine: Engine) => {
-    await loadFull(engine)
-  }, [])
-
-  const particlesLoaded = useCallback(async () => {
-    // Particles loaded callback
-  }, [])
 
   return (
     <div className="fixed inset-0 z-0 pointer-events-none">
