@@ -7,6 +7,12 @@ services:
     envVars:
       - key: APP_ENV
         value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        value: https://diu-esports-backend.onrender.com
+      - key: FRONTEND_URL
+        value: https://diues.vercel.app
       - key: DB_DRIVER
         value: pgsql
       - key: DB_HOST
@@ -19,5 +25,25 @@ services:
         value: N9P2tK3xOtsOKnpZqrk1PmtTPO34eFrA
       - key: DB_PORT
         value: 5432
+      - key: STORAGE_TYPE
+        value: local
+      - key: UPLOAD_PATH
+        value: uploads/
+      - key: ALLOWED_FILE_TYPES
+        value: image/jpeg,image/png,image/gif,image/webp
+      - key: MAX_FILE_SIZE
+        value: 5242880
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://diues.vercel.app,http://localhost:3000
+      - key: SESSION_SECURE
+        value: true
+      - key: SESSION_HTTP_ONLY
+        value: true
+      - key: SESSION_SAME_SITE
+        value: Strict
+      - key: LOG_LEVEL
+        value: error
+      - key: TIMEZONE
+        value: UTC
     healthCheckPath: /test_render.php
     autoDeploy: true

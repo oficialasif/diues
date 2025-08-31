@@ -18,16 +18,16 @@ if (file_exists(__DIR__ . '/../../.env')) {
 // Production settings
 define('APP_ENV', $_ENV['APP_ENV'] ?? 'production');
 define('APP_DEBUG', $_ENV['APP_DEBUG'] ?? 'false');
-define('APP_URL', $_ENV['APP_URL'] ?? 'https://your-app-name.onrender.com');
-define('FRONTEND_URL', $_ENV['FRONTEND_URL'] ?? 'https://your-vercel-app.vercel.app');
+define('APP_URL', $_ENV['APP_URL'] ?? 'https://diu-esports-backend.onrender.com');
+define('FRONTEND_URL', $_ENV['FRONTEND_URL'] ?? 'https://diues.vercel.app');
 
 // Database configuration
 define('DB_DRIVER', $_ENV['DB_DRIVER'] ?? 'pgsql');
-define('DB_HOST', $_ENV['DB_HOST'] ?? 'localhost');
-define('DB_NAME', $_ENV['DB_NAME'] ?? 'diu_esports');
-define('DB_USERNAME', $_ENV['DB_USERNAME'] ?? 'root');
-define('DB_PASSWORD', $_ENV['DB_PASSWORD'] ?? '');
-define('DB_PORT', $_ENV['DB_PORT'] ?? '');
+define('DB_HOST', $_ENV['DB_HOST'] ?? 'dpg-d2qcflre5dus73bt42b0-a.oregon-postgres.render.com');
+define('DB_NAME', $_ENV['DB_NAME'] ?? 'diu_esports_db');
+define('DB_USERNAME', $_ENV['DB_USERNAME'] ?? 'diu_esports_user');
+define('DB_PASSWORD', $_ENV['DB_PASSWORD'] ?? 'N9P2tK3xOtsOKnpZqrk1PmtTPO34eFrA');
+define('DB_PORT', $_ENV['DB_PORT'] ?? '5432');
 
 // File storage configuration
 define('STORAGE_TYPE', $_ENV['STORAGE_TYPE'] ?? 'local');

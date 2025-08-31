@@ -15,7 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-require_once '../config/database.php';
+// Load production configuration
+require_once '../config/config.production.php';
+require_once '../config/database.production.php';
 require_once '../config/auth.php';
 
 $database = new Database();

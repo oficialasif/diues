@@ -1,6 +1,6 @@
 
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://your-railway-project.railway.app/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://diu-esports-backend.onrender.com/api';
 
 export interface ApiResponse<T = any> {
   success: boolean;
