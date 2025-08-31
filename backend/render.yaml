@@ -1,7 +1,6 @@
 services:
   - type: web
     name: diu-esports-backend
-    runtime: php
     plan: free
     rootDir: backend
     buildCommand: ""
