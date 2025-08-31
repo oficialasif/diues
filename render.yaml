@@ -1,0 +1,65 @@
+services:
+  # DIU Esports Community Portal Backend
+  - type: web
+    name: diu-esports-backend
+    env: php
+    plan: free
+    buildCommand: |
+      # Install PHP extensions if needed
+      # No build command needed for PHP
+    startCommand: |
+      # Start PHP built-in server for development
+      # In production, this would be handled by Render's PHP runtime
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_DRIVER
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: diu-esports-db
+          property: host
+      - key: DB_NAME
+        fromDatabase:
+          name: diu-esports-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: diu-esports-db
+          property: username
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: diu-esports-db
+          property: password
+      - key: DB_PORT
+        fromDatabase:
+          name: diu-esports-db
+          property: port
+      - key: STORAGE_TYPE
+        value: local
+      - key: UPLOAD_PATH
+        value: uploads/
+      - key: ALLOWED_FILE_TYPES
+        value: image/jpeg,image/png,image/gif,image/webp
+      - key: MAX_FILE_SIZE
+        value: 5242880
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        value: https://your-app-name.onrender.com
+      - key: FRONTEND_URL
+        value: https://your-vercel-app.vercel.app
+    healthCheckPath: /api/stats
+    autoDeploy: true
+    branch: master
+
+databases:
+  # PostgreSQL Database for DIU Esports Community
+  - name: diu-esports-db
+    databaseName: diu_esports
+    user: diu_esports_user
+    plan: free
+    ipAllowList: []
+    externalDatabaseId: null

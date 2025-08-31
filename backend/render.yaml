@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: diu-esports-backend
+    env: php
+    plan: free
+    rootDir: backend
+    buildCommand: ""
+    startCommand: ""
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: DB_DRIVER
+        value: pgsql
+      - key: STORAGE_TYPE
+        value: local
+      - key: UPLOAD_PATH
+        value: uploads/
+      - key: ALLOWED_FILE_TYPES
+        value: image/jpeg,image/png,image/gif,image/webp
+      - key: MAX_FILE_SIZE
+        value: 5242880
+    healthCheckPath: /api/stats
+    autoDeploy: true
+    branch: master
