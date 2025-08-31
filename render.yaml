@@ -2,7 +2,7 @@ services:
   # DIU Esports Community Portal Backend
   - type: web
     name: diu-esports-backend
-    env: php
+    runtime: php
     plan: free
     buildCommand: |
       # Install PHP extensions if needed
@@ -26,7 +26,7 @@ services:
       - key: DB_USERNAME
         fromDatabase:
           name: diu-esports-db
-          property: username
+          property: user
       - key: DB_PASSWORD
         fromDatabase:
           name: diu-esports-db
