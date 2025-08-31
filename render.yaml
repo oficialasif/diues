@@ -3,13 +3,10 @@ services:
     name: diu-esports-backend
     plan: free
     rootDir: backend
-    buildCommand: ""
     startCommand: "php -S 0.0.0.0:$PORT"
     envVars:
       - key: APP_ENV
         value: production
-      - key: APP_DEBUG
-        value: false
       - key: DB_DRIVER
         value: pgsql
       - key: DB_HOST
@@ -22,18 +19,5 @@ services:
         value: N9P2tK3xOtsOKnpZqrk1PmtTPO34eFrA
       - key: DB_PORT
         value: 5432
-      - key: STORAGE_TYPE
-        value: local
-      - key: UPLOAD_PATH
-        value: uploads/
-      - key: ALLOWED_FILE_TYPES
-        value: image/jpeg,image/png,image/gif,image/webp
-      - key: MAX_FILE_SIZE
-        value: 5242880
-      - key: APP_URL
-        value: https://diu-esports-backend.onrender.com
-      - key: FRONTEND_URL
-        value: https://your-vercel-app.vercel.app
-    healthCheckPath: /api/stats
+    healthCheckPath: /test_render.php
     autoDeploy: true
-    branch: master
