@@ -46,7 +46,7 @@ backend/
 
 #### **5. Key Files Updated ✅**
 - ✅ `render.yaml` - Complete configuration
-- ✅ `services/api.ts` - Updated API URL
+- ✅ `services/api.ts` - Updated API URL (environment-aware)
 - ✅ `backend/config/config.production.php` - Production settings
 - ✅ `backend/config/database.production.php` - PostgreSQL config
 - ✅ `backend/api/index.php` - Uses production config
@@ -105,17 +105,30 @@ NEXT_PUBLIC_API_BASE_URL=https://diu-esports-backend.onrender.com/api
 NEXT_PUBLIC_SITE_URL=https://diues.vercel.app
 ```
 
+### **Frontend (Localhost Development)**
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost/diuecport/backend/api
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
 ## 🎯 **Expected Result**
 - ✅ Frontend works on Vercel
 - ✅ Backend API works on Render
 - ✅ Database connected and initialized
 - ✅ Admin panel functional
 - ✅ All features working
+- ✅ Localhost development still works
 
 ## 🚨 **Important Notes**
 1. **No frontend changes needed** - Only environment variable update
 2. **Database will be empty** - Run setup script after deployment
 3. **File uploads** - Will work with local storage on Render
 4. **CORS** - Configured for Vercel frontend
+5. **Localhost development** - Fixed to work with XAMPP path
+
+## 🔧 **Localhost Development Fix**
+The API configuration is now environment-aware:
+- **Development**: Uses `http://localhost/diuecport/backend/api`
+- **Production**: Uses `https://diu-esports-backend.onrender.com/api`
 
 **Status: READY TO DEPLOY! 🚀**
