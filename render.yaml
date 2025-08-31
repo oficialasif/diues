@@ -62,4 +62,3 @@ databases:
     user: diu_esports_user
     plan: free
     ipAllowList: []
-    externalDatabaseId: null
