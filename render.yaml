@@ -8,7 +8,7 @@ services:
     plan: free                   # Pricing plan (free, starter, standard, etc.)
     rootDir: backend             # Point to the backend directory (where your PHP files are)
     buildCommand: ""             # Leave empty for PHP (no build step needed)
-    startCommand: ""             # Leave empty for PHP (Render handles this automatically)
+    startCommand: "php -S 0.0.0.0:$PORT"  # Start PHP built-in server
     
     # Environment Variables (like .env file)
     envVars:
