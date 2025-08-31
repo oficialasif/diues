@@ -1,4 +1,7 @@
 <?php
+// Start session at the very beginning
+session_start();
+
 require_once '../config/auth.php';
 require_once '../config/database.php';
 

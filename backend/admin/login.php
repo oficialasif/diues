@@ -1,4 +1,7 @@
 <?php
+// Start session at the very beginning
+session_start();
+
 require_once '../config/database.php';
 require_once '../config/auth.php';
 
@@ -126,6 +129,41 @@ if ($auth->isLoggedIn()) {
                     ← Back to Website
                 </a>
             </div>
+            
+            <!-- Debug Information (remove in production) -->
+            <?php if (isset($_GET['debug']) && $_GET['debug'] === '1'): ?>
+            <div class="mt-6 p-4 bg-gray-800 rounded-lg">
+                <h4 class="text-sm font-semibold text-gray-300 mb-2">Debug Information</h4>
+                <div class="text-xs text-gray-400 space-y-1">
+                    <?php
+                    try {
+                        require_once '../config/database.php';
+                        $db = new Database();
+                        $conn = $db->getConnection();
+                        echo "<div>✅ Database: Connected</div>";
+                        
+                        // Check users table
+                        $stmt = $conn->query("SELECT COUNT(*) as count FROM users");
+                        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                        echo "<div>✅ Users table: {$result['count']} users</div>";
+                        
+                        // Check admin user
+                        $stmt = $conn->prepare("SELECT username, role, is_active FROM users WHERE username = ?");
+                        $stmt->execute(['admin']);
+                        $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+                        if ($admin) {
+                            echo "<div>✅ Admin user: {$admin['username']} (Role: {$admin['role']}, Active: " . ($admin['is_active'] ? 'Yes' : 'No') . ")</div>";
+                        } else {
+                            echo "<div>❌ Admin user: Not found</div>";
+                        }
+                        
+                    } catch (Exception $e) {
+                        echo "<div>❌ Database: " . $e->getMessage() . "</div>";
+                    }
+                    ?>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
         
         <!-- Footer -->
