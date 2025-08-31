@@ -1,7 +1,7 @@
 <?php
 /**
- * Production Database Configuration for DIU Esports Community
- * Supports both MySQL and PostgreSQL with environment variables
+ * Production Database Configuration for DIU Esports Community Portal
+ * Configured for PostgreSQL on Render
  */
 
 class Database {
@@ -14,52 +14,46 @@ class Database {
     private $conn;
     
     public function __construct() {
-        // Get database configuration from environment variables
-        $this->host = $_ENV['DB_HOST'] ?? 'localhost';
-        $this->db_name = $_ENV['DB_NAME'] ?? 'diu_esports';
-        $this->username = $_ENV['DB_USERNAME'] ?? 'root';
-        $this->password = $_ENV['DB_PASSWORD'] ?? '';
-        $this->port = $_ENV['DB_PORT'] ?? '';
-        $this->driver = $_ENV['DB_DRIVER'] ?? 'mysql'; // mysql or pgsql
+        // Load from environment variables (set by render.yaml)
+        $this->host = $_ENV['DB_HOST'] ?? 'dpg-d2qcflre5dus73bt42b0-a.oregon-postgres.render.com';
+        $this->db_name = $_ENV['DB_NAME'] ?? 'diu_esports_db';
+        $this->username = $_ENV['DB_USERNAME'] ?? 'diu_esports_user';
+        $this->password = $_ENV['DB_PASSWORD'] ?? 'N9P2tK3xOtsOKnpZqrk1PmtTPO34eFrA';
+        $this->port = $_ENV['DB_PORT'] ?? '5432';
+        $this->driver = $_ENV['DB_DRIVER'] ?? 'pgsql';
     }
 
     /**
      * Get database connection
      */
     public function getConnection() {
-        if ($this->conn === null) {
-            try {
-                if ($this->driver === 'pgsql') {
-                    // PostgreSQL connection
-                    $dsn = "pgsql:host={$this->host}";
-                    if ($this->port) {
-                        $dsn .= ";port={$this->port}";
-                    }
-                    $dsn .= ";dbname={$this->db_name}";
-                    
-                    $this->conn = new PDO($dsn, $this->username, $this->password);
-                } else {
-                    // MySQL connection
-                    $dsn = "mysql:host={$this->host}";
-                    if ($this->port) {
-                        $dsn .= ";port={$this->port}";
-                    }
-                    $dsn .= ";dbname={$this->db_name};charset=utf8mb4";
-                    
-                    $this->conn = new PDO($dsn, $this->username, $this->password);
-                    $this->conn->exec("set names utf8mb4");
-                }
-                
-                $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-                
-            } catch(PDOException $exception) {
-                error_log("Database connection error: " . $exception->getMessage());
-                throw new Exception("Database connection failed. Please check your configuration.");
-            }
-        }
+        $this->conn = null;
 
-        return $this->conn;
+        try {
+            if ($this->driver === 'pgsql') {
+                // PostgreSQL connection
+                $dsn = "pgsql:host={$this->host};port={$this->port};dbname={$this->db_name}";
+                $this->conn = new PDO($dsn, $this->username, $this->password, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES => false
+                ]);
+            } else {
+                // MySQL connection (fallback)
+                $dsn = "mysql:host={$this->host};dbname={$this->db_name}";
+                $this->conn = new PDO($dsn, $this->username, $this->password, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+                ]);
+            }
+
+            error_log("Database connection established successfully");
+            return $this->conn;
+
+        } catch (PDOException $e) {
+            error_log("Database connection failed: " . $e->getMessage());
+            throw new Exception("Database connection failed: " . $e->getMessage());
+        }
     }
 
     /**

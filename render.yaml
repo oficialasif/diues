@@ -1,17 +1,38 @@
+# DIU Esports Community Portal - Render Deployment Configuration
+# This file tells Render how to deploy your PHP backend and connect to existing PostgreSQL database
+
 services:
-  - type: web
-    name: diu-esports-backend
-    plan: free
-    rootDir: backend
-    buildCommand: ""
-    startCommand: ""
+  # Web Service for PHP Backend
+  - type: web                    # Type of service (web, background, cron)
+    name: diu-esports-backend    # Name of your service
+    plan: free                   # Pricing plan (free, starter, standard, etc.)
+    rootDir: backend             # Point to the backend directory (where your PHP files are)
+    buildCommand: ""             # Leave empty for PHP (no build step needed)
+    startCommand: ""             # Leave empty for PHP (Render handles this automatically)
+    
+    # Environment Variables (like .env file)
     envVars:
+      # App Configuration
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
         value: false
+      
+      # Database Configuration (using existing database)
       - key: DB_DRIVER
         value: pgsql
+      - key: DB_HOST
+        value: dpg-d2qcflre5dus73bt42b0-a.oregon-postgres.render.com
+      - key: DB_NAME
+        value: diu_esports_db
+      - key: DB_USERNAME
+        value: diu_esports_user
+      - key: DB_PASSWORD
+        value: N9P2tK3xOtsOKnpZqrk1PmtTPO34eFrA
+      - key: DB_PORT
+        value: 5432
+      
+      # File Storage Configuration
       - key: STORAGE_TYPE
         value: local
       - key: UPLOAD_PATH
@@ -19,13 +40,17 @@ services:
       - key: ALLOWED_FILE_TYPES
         value: image/jpeg,image/png,image/gif,image/webp
       - key: MAX_FILE_SIZE
-        value: 5242880
+        value: 5242880  # 5MB in bytes
+      
+      # App URLs
+      - key: APP_URL
+        value: https://diu-esports-backend.onrender.com
+      - key: FRONTEND_URL
+        value: https://your-vercel-app.vercel.app
+    
+    # Health Check (Render will check this URL to see if your app is running)
     healthCheckPath: /api/stats
+    
+    # Auto-deploy when you push to GitHub
     autoDeploy: true
     branch: master
-
-databases:
-  - name: diu-esports-db
-    databaseName: diu_esports
-    user: diu_esports_user
-    plan: free
