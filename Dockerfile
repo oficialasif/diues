@@ -11,6 +11,7 @@ RUN docker-php-ext-install pdo pdo_pgsql pgsql
 # Enable Apache Rewrite Module
 RUN a2enmod rewrite
 
+# Set working directory
 WORKDIR /var/www/html
 
 # Copy project files
@@ -22,6 +23,18 @@ RUN mkdir -p backend/uploads/{highlights,icons,logos,photos,posters} \
     && chmod -R 755 backend/uploads \
     && chmod -R 755 backend/logs \
     && chown -R www-data:www-data /var/www/html
+
+# Configure Apache to serve from backend directory
+RUN echo '<VirtualHost *:80>\n\
+    DocumentRoot /var/www/html/backend\n\
+    <Directory /var/www/html/backend>\n\
+        AllowOverride All\n\
+        Require all granted\n\
+        DirectoryIndex index.php index.html\n\
+    </Directory>\n\
+    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
+    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
+</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
 # Expose port
 EXPOSE 80

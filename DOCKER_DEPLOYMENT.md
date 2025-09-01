@@ -61,8 +61,8 @@ TIMEZONE=UTC
 
 ### File Structure
 ```
-/var/www/html/          # Web root (repository root)
-├── backend/            # Backend application
+/var/www/html/          # Repository root
+├── backend/            # Backend application (Apache DocumentRoot)
 │   ├── api/           # API endpoints
 │   ├── admin/         # Admin panel
 │   ├── config/        # Configuration files
@@ -72,10 +72,11 @@ TIMEZONE=UTC
 └── Dockerfile          # Docker configuration
 ```
 
-### Permissions
-- **www-data** user for security
-- **755** permissions for uploads and logs directories
-- **Apache mod_rewrite** enabled
+### Apache Configuration
+- **DocumentRoot**: Set to `/var/www/html/backend`
+- **DirectoryIndex**: `index.php`, `index.html`
+- **Permissions**: `www-data` user for security
+- **mod_rewrite**: Enabled for URL routing
 
 ## 🔧 Alternative: Use Blueprint Deployment
 
@@ -94,7 +95,7 @@ TIMEZONE=UTC
 
 ### 1. Health Check
 ```
-https://diu-esports-backend.onrender.com/backend/test_render.php
+https://diu-esports-backend.onrender.com/test_render.php
 ```
 Should show:
 - Database connection success
@@ -103,7 +104,7 @@ Should show:
 
 ### 2. API Test
 ```
-https://diu-esports-backend.onrender.com/backend/api
+https://diu-esports-backend.onrender.com/api
 ```
 Should show:
 - API endpoints list
@@ -111,7 +112,7 @@ Should show:
 
 ### 3. Database Setup
 ```
-https://diu-esports-backend.onrender.com/backend/install.php
+https://diu-esports-backend.onrender.com/install.php
 ```
 Run this to:
 - Create database tables
@@ -126,8 +127,9 @@ Run this to:
 3. **Extensions**: Install PHP PostgreSQL extensions
 4. **Configuration**: Enable Apache mod_rewrite
 5. **Files**: Copy entire project
-6. **Permissions**: Set up uploads and logs directories
-7. **Start**: Launch Apache server
+6. **Apache Config**: Set DocumentRoot to backend directory
+7. **Permissions**: Set up uploads and logs directories
+8. **Start**: Launch Apache server
 
 ### Build Time
 - **First build**: 3-5 minutes
@@ -156,7 +158,7 @@ Run this to:
 
 #### 5. 404 Errors
 - **Problem**: Pages not found
-- **Solution**: Remember to include `/backend/` in URLs
+- **Solution**: Apache is configured to serve from backend directory
 
 ### Debug Commands
 
@@ -172,16 +174,19 @@ php -m
 
 # Check Apache status
 service apache2 status
+
+# Check Apache configuration
+apache2ctl -S
 ```
 
 ## 📱 Final URLs
 
 After successful deployment:
 
-- **Backend**: https://diu-esports-backend.onrender.com/backend
-- **API**: https://diu-esports-backend.onrender.com/backend/api
-- **Admin**: https://diu-esports-backend.onrender.com/backend/admin
-- **Health Check**: https://diu-esports-backend.onrender.com/backend/test_render.php
+- **Backend**: https://diu-esports-backend.onrender.com
+- **API**: https://diu-esports-backend.onrender.com/api
+- **Admin**: https://diu-esports-backend.onrender.com/admin
+- **Health Check**: https://diu-esports-backend.onrender.com/test_render.php
 
 ## 🎯 Success Indicators
 
