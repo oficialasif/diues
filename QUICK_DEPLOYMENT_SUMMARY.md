@@ -55,21 +55,21 @@ TIMEZONE=UTC
 ```
 
 ## 🐳 What Docker Gives You
-- **PHP 8.1** with Apache web server
+- **PHP 8.2** with Apache web server
 - **PostgreSQL extensions** for database connectivity
 - **File upload support** with proper permissions
 - **Production-ready** environment
 - **Easy debugging** and troubleshooting
 
 ## 🧪 Test After Deployment
-1. **Health Check**: `https://diu-esports-backend.onrender.com/test_render.php`
-2. **API Test**: `https://diu-esports-backend.onrender.com/api`
-3. **Database Setup**: `https://diu-esports-backend.onrender.com/install.php`
+1. **Health Check**: `https://diu-esports-backend.onrender.com/backend/test_render.php`
+2. **API Test**: `https://diu-esports-backend.onrender.com/backend/api`
+3. **Database Setup**: `https://diu-esports-backend.onrender.com/backend/install.php`
 
 ## 🔗 Connect Frontend
 In Vercel, set:
 ```env
-NEXT_PUBLIC_API_BASE_URL=https://diu-esports-backend.onrender.com/api
+NEXT_PUBLIC_API_BASE_URL=https://diu-esports-backend.onrender.com/backend/api
 ```
 
 ## 📚 Full Documentation
@@ -82,6 +82,12 @@ NEXT_PUBLIC_API_BASE_URL=https://diu-esports-backend.onrender.com/api
 2. Connect your GitHub repo
 3. Render will automatically use `render.yaml`
 4. All settings pre-configured
+
+## ⚠️ Important Note
+Since we copy the entire project, your backend URLs will include `/backend/`:
+- **API**: `/backend/api`
+- **Admin**: `/backend/admin`
+- **Health Check**: `/backend/test_render.php`
 
 ---
 

@@ -51,29 +51,30 @@ TIMEZONE=UTC
 ## 🐳 What the Dockerfile Does
 
 ### Base Image
-- **PHP 8.1** with Apache web server
+- **PHP 8.2** with Apache web server
 - **Latest stable** PHP version
 - **Production-ready** configuration
 
 ### Installed Extensions
 - `pdo` & `pdo_pgsql` - Database connectivity
 - `pgsql` - PostgreSQL support
-- `zip` - File handling
-- `mbstring` - String handling
 
 ### File Structure
 ```
-/var/www/html/          # Web root
-├── api/                # API endpoints
-├── admin/              # Admin panel
-├── config/             # Configuration files
-├── uploads/            # File uploads
-└── logs/               # Application logs
+/var/www/html/          # Web root (repository root)
+├── backend/            # Backend application
+│   ├── api/           # API endpoints
+│   ├── admin/         # Admin panel
+│   ├── config/        # Configuration files
+│   ├── uploads/       # File uploads
+│   └── logs/          # Application logs
+├── frontend/           # Frontend files (not served)
+└── Dockerfile          # Docker configuration
 ```
 
 ### Permissions
 - **www-data** user for security
-- **755** permissions for directories
+- **755** permissions for uploads and logs directories
 - **Apache mod_rewrite** enabled
 
 ## 🔧 Alternative: Use Blueprint Deployment
@@ -93,7 +94,7 @@ TIMEZONE=UTC
 
 ### 1. Health Check
 ```
-https://diu-esports-backend.onrender.com/test_render.php
+https://diu-esports-backend.onrender.com/backend/test_render.php
 ```
 Should show:
 - Database connection success
@@ -102,7 +103,7 @@ Should show:
 
 ### 2. API Test
 ```
-https://diu-esports-backend.onrender.com/api
+https://diu-esports-backend.onrender.com/backend/api
 ```
 Should show:
 - API endpoints list
@@ -110,7 +111,7 @@ Should show:
 
 ### 3. Database Setup
 ```
-https://diu-esports-backend.onrender.com/install.php
+https://diu-esports-backend.onrender.com/backend/install.php
 ```
 Run this to:
 - Create database tables
@@ -120,17 +121,17 @@ Run this to:
 ## 🔍 Docker Build Process
 
 ### Build Steps
-1. **Base Image**: Pull PHP 8.1 + Apache
-2. **Dependencies**: Install system packages
-3. **Extensions**: Install PHP extensions
-4. **Configuration**: Set up Apache
-5. **Files**: Copy backend code
-6. **Permissions**: Set file permissions
+1. **Base Image**: Pull PHP 8.2 + Apache
+2. **Dependencies**: Install PostgreSQL libraries
+3. **Extensions**: Install PHP PostgreSQL extensions
+4. **Configuration**: Enable Apache mod_rewrite
+5. **Files**: Copy entire project
+6. **Permissions**: Set up uploads and logs directories
 7. **Start**: Launch Apache server
 
 ### Build Time
-- **First build**: 5-10 minutes
-- **Subsequent builds**: 2-5 minutes
+- **First build**: 3-5 minutes
+- **Subsequent builds**: 1-3 minutes
 - **Dependencies cached** for faster builds
 
 ## 🚨 Troubleshooting Docker
@@ -153,6 +154,10 @@ Run this to:
 - **Problem**: Can't write to uploads/logs
 - **Solution**: Check Dockerfile permissions setup
 
+#### 5. 404 Errors
+- **Problem**: Pages not found
+- **Solution**: Remember to include `/backend/` in URLs
+
 ### Debug Commands
 
 ```bash
@@ -173,10 +178,10 @@ service apache2 status
 
 After successful deployment:
 
-- **Backend**: https://diu-esports-backend.onrender.com
-- **API**: https://diu-esports-backend.onrender.com/api
-- **Admin**: https://diu-esports-backend.onrender.com/admin
-- **Health Check**: https://diu-esports-backend.onrender.com/test_render.php
+- **Backend**: https://diu-esports-backend.onrender.com/backend
+- **API**: https://diu-esports-backend.onrender.com/backend/api
+- **Admin**: https://diu-esports-backend.onrender.com/backend/admin
+- **Health Check**: https://diu-esports-backend.onrender.com/backend/test_render.php
 
 ## 🎯 Success Indicators
 

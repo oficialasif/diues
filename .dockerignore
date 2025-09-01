@@ -17,6 +17,7 @@ node_modules/
 DEPLOYMENT_*.md
 RENDER_*.md
 PHP_*.md
+DOCKER_*.md
 
 # Exclude deployment scripts
 deploy-*.sh
@@ -24,8 +25,13 @@ render.yaml
 
 # Exclude logs and uploads (will be created in container)
 logs/
+backend/logs/
 backend/uploads/
 
 # Exclude OS files
 .DS_Store
 Thumbs.db
+
+# Exclude Docker files (not needed inside container)
+Dockerfile
+.dockerignore
