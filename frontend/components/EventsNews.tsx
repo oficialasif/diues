@@ -18,12 +18,22 @@ const EventsNews = () => {
     const fetchEvents = async () => {
       try {
         setLoading(true)
-        const data = await apiService.getEvents()
-        setEvents(data)
+        const response = await apiService.getEvents()
+        
+        // Ensure we have an array of events
+        if (response && Array.isArray(response)) {
+          setEvents(response)
+        } else if (response && response.data && Array.isArray(response.data)) {
+          setEvents(response.data)
+        } else {
+          console.warn('Unexpected events data structure:', response)
+          setEvents([])
+        }
         setError(null)
       } catch (err) {
         console.error('Failed to fetch events:', err)
         setError('Failed to load events')
+        setEvents([])
       } finally {
         setLoading(false)
       }
@@ -91,6 +101,9 @@ const EventsNews = () => {
     }
   }, [])
 
+  // Ensure events is always an array
+  const safeEvents = Array.isArray(events) ? events : []
+
   // Calculate time left based on admin countdown settings
   useEffect(() => {
     if (!countdownSettings || !countdownSettings.show_countdown) {
@@ -155,11 +168,11 @@ const EventsNews = () => {
   }, [countdownSettings])
 
   const nextSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % events.length)
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % safeEvents.length)
   }
 
   const prevSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + events.length - 1) % events.length)
+    setCurrentIndex((prevIndex) => (prevIndex + safeEvents.length - 1) % safeEvents.length)
   }
 
   const getStatusColor = (status: string) => {
@@ -229,7 +242,7 @@ const EventsNews = () => {
     )
   }
 
-  if (events.length === 0) {
+  if (safeEvents.length === 0) {
     return (
       <div className="container mx-auto px-4 py-20">
         <div className="text-center">
@@ -240,7 +253,7 @@ const EventsNews = () => {
     )
   }
 
-  const currentEvent = events[currentIndex]
+  const currentEvent = safeEvents[currentIndex]
 
   return (
     <div className="container mx-auto px-4">
@@ -258,9 +271,9 @@ const EventsNews = () => {
         <p className="text-xl text-gray-300 font-poppins max-w-3xl mx-auto">
           Stay updated with our latest events, tournaments, and community activities
         </p>
-        {events.length > 0 && (
+        {safeEvents.length > 0 && (
           <p className="text-neon-green mt-4 font-poppins">
-            {events.length} events scheduled
+            {safeEvents.length} events scheduled
           </p>
         )}
       </motion.div>
@@ -389,7 +402,7 @@ const EventsNews = () => {
 
           {/* Event Indicators */}
           <div className="flex justify-center mt-8 space-x-2">
-            {events.map((_, index) => (
+            {safeEvents.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
@@ -414,25 +427,25 @@ const EventsNews = () => {
       >
         <div className="text-center">
           <div className="text-3xl font-orbitron text-neon-green mb-2">
-            {events.filter(e => e.status === 'upcoming').length}
+            {safeEvents.filter(e => e.status === 'upcoming').length}
           </div>
           <div className="text-gray-400 font-poppins">Upcoming</div>
         </div>
         <div className="text-center">
           <div className="text-3xl font-orbitron text-primary-blue mb-2">
-            {events.filter(e => e.status === 'ongoing').length}
+            {safeEvents.filter(e => e.status === 'ongoing').length}
           </div>
           <div className="text-gray-400 font-poppins">Ongoing</div>
         </div>
         <div className="text-center">
           <div className="text-3xl font-orbitron text-yellow-400 mb-2">
-            {events.filter(e => e.event_type === 'workshop').length}
+            {safeEvents.filter(e => e.event_type === 'workshop').length}
           </div>
           <div className="text-gray-400 font-poppins">Workshops</div>
         </div>
         <div className="text-center">
           <div className="text-3xl font-orbitron text-purple-400 mb-2">
-            {events.filter(e => e.event_type === 'tournament').length}
+            {safeEvents.filter(e => e.event_type === 'tournament').length}
           </div>
           <div className="text-gray-400 font-poppins">Tournaments</div>
         </div>

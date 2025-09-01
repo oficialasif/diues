@@ -35,12 +35,23 @@ const GamesPortfolio = () => {
     const fetchTournaments = async () => {
       try {
         setLoading(true)
-        const data = await apiService.getTournaments()
-        setTournaments(data)
+        const response = await apiService.getTournaments()
+        
+        // Ensure we have an array of tournaments
+        if (response && Array.isArray(response)) {
+          setTournaments(response)
+        } else if (response && response.data && Array.isArray(response.data)) {
+          setTournaments(response.data)
+        } else {
+          console.warn('Unexpected tournaments data structure:', response)
+          setTournaments([])
+        }
+        
         setError(null)
       } catch (err) {
         console.error('Failed to fetch tournaments:', err)
         setError('Failed to load tournaments')
+        setTournaments([])
       } finally {
         setLoading(false)
       }
@@ -135,17 +146,17 @@ const GamesPortfolio = () => {
   const removeTeamMember = (index: number) => {
     setRegistrationForm(prev => ({
       ...prev,
-      team_members: prev.team_members?.filter((_, i) => i !== index) || []
+      team_members: prev.team_members.filter((_, i) => i !== index)
     }))
   }
 
-  // Update team member
-  const updateTeamMember = (index: number, field: keyof TournamentTeamMember, value: any) => {
+  // Handle team member form changes
+  const handleTeamMemberChange = (index: number, field: keyof TournamentTeamMember, value: any) => {
     setRegistrationForm(prev => ({
       ...prev,
-      team_members: prev.team_members?.map((member, i) => 
+      team_members: prev.team_members.map((member, i) => 
         i === index ? { ...member, [field]: value } : member
-      ) || []
+      )
     }))
   }
 
@@ -153,49 +164,11 @@ const GamesPortfolio = () => {
   const submitRegistration = async () => {
     try {
       setRegistrationLoading(true)
-      
-      // Debug: Log the form data
-      console.log('Submitting registration form:', registrationForm)
-      
-      // Validate required fields
-      if (!registrationForm.team_name || !registrationForm.captain_name || !registrationForm.captain_email) {
-        alert('Please fill in all required fields')
-        return
-      }
-
-      // Validate team members based on team type
-      const requiredMembers = registrationForm.team_type === 'solo' ? 0 : 
-                             registrationForm.team_type === 'duo' ? 1 : 3
-      
-      if (registrationForm.team_members?.length !== requiredMembers) {
-        alert(`Please add ${requiredMembers} team member(s) for ${registrationForm.team_type} team`)
-        return
-      }
-
-      // Debug: Log the API call
-      console.log('Calling API service...')
-      
-      // Submit registration
-      const result = await apiService.registerForTournament(registrationForm)
-      
-      // Debug: Log the result
-      console.log('Registration result:', result)
-      
+      await apiService.registerForTournament(registrationForm)
       setRegistrationSuccess(true)
       setTimeout(() => {
         closeRegistrationForm()
-        // Refresh tournaments to update participant count
-        const fetchTournaments = async () => {
-          try {
-            const data = await apiService.getTournaments()
-            setTournaments(data)
-          } catch (err) {
-            console.error('Failed to refresh tournaments:', err)
-          }
-        }
-        fetchTournaments()
-      }, 2000)
-      
+      }, 3000)
     } catch (err) {
       console.error('Registration failed:', err)
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
@@ -205,9 +178,14 @@ const GamesPortfolio = () => {
     }
   }
 
+  // Ensure tournaments is always an array
+  const safeTournaments = Array.isArray(tournaments) ? tournaments : []
+
   // Get unique games from tournaments
   const getUniqueGames = () => {
-    const games = tournaments
+    if (safeTournaments.length === 0) return []
+    
+    const games = safeTournaments
       .filter(t => t.game_name)
       .map(t => ({ name: t.game_name, genre: t.genre }))
       .filter((game, index, self) => 
@@ -221,9 +199,9 @@ const GamesPortfolio = () => {
     let filtered = []
     
     if (selectedGame === 'all') {
-      filtered = tournaments
+      filtered = safeTournaments
     } else {
-      filtered = tournaments.filter(t => t.game_name === selectedGame)
+      filtered = safeTournaments.filter(t => t.game_name === selectedGame)
     }
     
     // Limit to 3 tournaments initially unless showAllTournaments is true
@@ -237,9 +215,9 @@ const GamesPortfolio = () => {
   // Get total count of filtered tournaments (before limiting)
   const getTotalFilteredCount = () => {
     if (selectedGame === 'all') {
-      return tournaments.length
+      return safeTournaments.length
     }
-    return tournaments.filter(t => t.game_name === selectedGame).length
+    return safeTournaments.filter(t => t.game_name === selectedGame).length
   }
 
   const uniqueGames = getUniqueGames()
@@ -815,7 +793,7 @@ const GamesPortfolio = () => {
                                 <input
                                   type="text"
                                   value={member.player_name}
-                                  onChange={(e) => updateTeamMember(index, 'player_name', e.target.value)}
+                                  onChange={(e) => handleTeamMemberChange(index, 'player_name', e.target.value)}
                                   className="w-full bg-dark-secondary border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-neon-green focus:outline-none"
                                   placeholder="Member's full name"
                                   required
@@ -827,7 +805,7 @@ const GamesPortfolio = () => {
                                 <input
                                   type="email"
                                   value={member.player_email}
-                                  onChange={(e) => updateTeamMember(index, 'player_email', e.target.value)}
+                                  onChange={(e) => handleTeamMemberChange(index, 'player_email', e.target.value)}
                                   className="w-full bg-dark-secondary border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-neon-green focus:outline-none"
                                   placeholder="member@email.com"
                                 />
@@ -838,7 +816,7 @@ const GamesPortfolio = () => {
                                 <input
                                   type="tel"
                                   value={member.player_phone}
-                                  onChange={(e) => updateTeamMember(index, 'player_phone', e.target.value)}
+                                  onChange={(e) => handleTeamMemberChange(index, 'player_phone', e.target.value)}
                                   className="w-full bg-dark-secondary border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-neon-green focus:outline-none"
                                   placeholder="+880 1234-567890"
                                 />
@@ -849,7 +827,7 @@ const GamesPortfolio = () => {
                                 <input
                                   type="text"
                                   value={member.player_discord}
-                                  onChange={(e) => updateTeamMember(index, 'player_discord', e.target.value)}
+                                  onChange={(e) => handleTeamMemberChange(index, 'player_discord', e.target.value)}
                                   className="w-full bg-dark-secondary border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-neon-green focus:outline-none"
                                   placeholder="username#1234"
                                 />
@@ -860,7 +838,7 @@ const GamesPortfolio = () => {
                                 <input
                                   type="text"
                                   value={member.player_student_id}
-                                  onChange={(e) => updateTeamMember(index, 'player_student_id', e.target.value)}
+                                  onChange={(e) => handleTeamMemberChange(index, 'player_student_id', e.target.value)}
                                   className="w-full bg-dark-secondary border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-neon-green focus:outline-none"
                                   placeholder="2020-123-456"
                                 />
@@ -871,7 +849,7 @@ const GamesPortfolio = () => {
                                 <input
                                   type="text"
                                   value={member.player_department}
-                                  onChange={(e) => updateTeamMember(index, 'player_department', e.target.value)}
+                                  onChange={(e) => handleTeamMemberChange(index, 'player_department', e.target.value)}
                                   className="w-full bg-dark-secondary border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-neon-green focus:outline-none"
                                   placeholder="Computer Science & Engineering"
                                 />
@@ -882,7 +860,7 @@ const GamesPortfolio = () => {
                                 <input
                                   type="text"
                                   value={member.player_semester}
-                                  onChange={(e) => updateTeamMember(index, 'player_semester', e.target.value)}
+                                  onChange={(e) => handleTeamMemberChange(index, 'player_semester', e.target.value)}
                                   className="w-full bg-dark-secondary border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-neon-green focus:outline-none"
                                   placeholder="8th Semester"
                                 />
@@ -892,7 +870,7 @@ const GamesPortfolio = () => {
                                 <label className="block text-gray-300 text-sm mb-1">Role</label>
                                 <select
                                   value={member.player_role}
-                                  onChange={(e) => updateTeamMember(index, 'player_role', e.target.value)}
+                                  onChange={(e) => handleTeamMemberChange(index, 'player_role', e.target.value)}
                                   className="w-full bg-dark-secondary border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-neon-green focus:outline-none"
                                 >
                                   <option value="member">Team Member</option>
@@ -905,7 +883,7 @@ const GamesPortfolio = () => {
                                  <input
                                    type="text"
                                    value={member.game_username}
-                                   onChange={(e) => updateTeamMember(index, 'game_username', e.target.value)}
+                                   onChange={(e) => handleTeamMemberChange(index, 'game_username', e.target.value)}
                                    className="w-full bg-dark-secondary border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-neon-green focus:outline-none"
                                    placeholder="Member's game username/ID"
                                    required

@@ -18,12 +18,23 @@ const Achievements = () => {
     const fetchAchievements = async () => {
       try {
         setLoading(true)
-        const data = await apiService.getAchievements()
-        setAchievements(data)
+        const response = await apiService.getAchievements()
+        
+        // Ensure we have an array of achievements
+        if (response && Array.isArray(response)) {
+          setAchievements(response)
+        } else if (response && response.data && Array.isArray(response.data)) {
+          setAchievements(response.data)
+        } else {
+          console.warn('Unexpected achievements data structure:', response)
+          setAchievements([])
+        }
+        
         setError(null)
       } catch (err) {
         console.error('Failed to fetch achievements:', err)
         setError('Failed to load achievements')
+        setAchievements([])
       } finally {
         setLoading(false)
       }
@@ -32,19 +43,27 @@ const Achievements = () => {
     fetchAchievements()
   }, [])
 
+  // Ensure achievements is always an array
+  const safeAchievements = Array.isArray(achievements) ? achievements : []
+
   // Get unique categories and years
-  const categories = ['all', ...Array.from(new Set(achievements.map(achievement => achievement.category)))]
-  const years = ['all', ...Array.from(new Set(achievements.map(achievement => achievement.year)))]
+  const categories = safeAchievements.length > 0 
+    ? ['all', ...Array.from(new Set(safeAchievements.map(achievement => achievement.category).filter(Boolean)))]
+    : ['all']
+    
+  const years = safeAchievements.length > 0 
+    ? ['all', ...Array.from(new Set(safeAchievements.map(achievement => achievement.year).filter(Boolean)))]
+    : ['all']
 
   // Filter achievements based on selected filters
-  const filteredAchievements = achievements.filter(achievement => {
+  const filteredAchievements = safeAchievements.filter(achievement => {
     const categoryMatch = selectedCategory === 'all' || achievement.category === selectedCategory
     const yearMatch = selectedYear === 'all' || achievement.year === selectedYear
     return categoryMatch && yearMatch
   })
 
   // Get top achievements (using category as a proxy for top achievements)
-  const topAchievements = achievements.filter(achievement => achievement.category === 'championship')
+  const topAchievements = safeAchievements.filter(achievement => achievement.category === 'championship')
 
   const getCategoryIcon = (category: string) => {
     switch (category.toLowerCase()) {
@@ -153,9 +172,9 @@ const Achievements = () => {
         <p className="text-xl text-gray-300 font-poppins max-w-3xl mx-auto">
           Celebrating excellence, recognizing talent, and honoring the champions among us
         </p>
-        {achievements.length > 0 && (
+        {safeAchievements.length > 0 && (
           <p className="text-neon-green mt-4 font-poppins">
-            {achievements.length} achievements • {topAchievements.length} championship titles
+            {safeAchievements.length} achievements • {topAchievements.length} championship titles
           </p>
         )}
       </motion.div>
@@ -498,7 +517,7 @@ const Achievements = () => {
       >
         <div className="text-center">
           <div className="text-3xl font-orbitron text-neon-green mb-2">
-            {achievements.length}
+            {safeAchievements.length}
           </div>
           <div className="text-gray-400 font-poppins">Total Achievements</div>
         </div>

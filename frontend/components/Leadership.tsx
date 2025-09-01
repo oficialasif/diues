@@ -17,12 +17,23 @@ const Leadership = () => {
     const fetchCommitteeMembers = async () => {
       try {
         setLoading(true)
-        const data = await apiService.getCommitteeMembers()
-        setCommitteeMembers(data)
+        const response = await apiService.getCommitteeMembers()
+        
+        // Ensure we have an array of committee members
+        if (response && Array.isArray(response)) {
+          setCommitteeMembers(response)
+        } else if (response && response.data && Array.isArray(response.data)) {
+          setCommitteeMembers(response.data)
+        } else {
+          console.warn('Unexpected committee members data structure:', response)
+          setCommitteeMembers([])
+        }
+        
         setError(null)
       } catch (err) {
         console.error('Failed to fetch committee members:', err)
         setError('Failed to load committee members')
+        setCommitteeMembers([])
       } finally {
         setLoading(false)
       }
@@ -31,9 +42,12 @@ const Leadership = () => {
     fetchCommitteeMembers()
   }, [])
 
+  // Ensure committeeMembers is always an array
+  const safeCommitteeMembers = Array.isArray(committeeMembers) ? committeeMembers : []
+
   // Separate current and past committee members
-  const currentCommittee = committeeMembers.filter(member => member.is_current)
-  const pastCommittees = committeeMembers.filter(member => !member.is_current)
+  const currentCommittee = safeCommitteeMembers.filter(member => member.is_current)
+  const pastCommittees = safeCommitteeMembers.filter(member => !member.is_current)
 
   // Get current committee members to display based on showAllCurrent state
   const displayedCurrentCommittee = showAllCurrent ? currentCommittee : currentCommittee.slice(0, 3)

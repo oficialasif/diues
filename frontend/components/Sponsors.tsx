@@ -19,12 +19,23 @@ const Sponsors = () => {
     const fetchSponsors = async () => {
       try {
         setLoading(true)
-        const data = await apiService.getSponsors()
-        setSponsors(data)
+        const response = await apiService.getSponsors()
+        
+        // Ensure we have an array of sponsors
+        if (response && Array.isArray(response)) {
+          setSponsors(response)
+        } else if (response && response.data && Array.isArray(response.data)) {
+          setSponsors(response.data)
+        } else {
+          console.warn('Unexpected sponsors data structure:', response)
+          setSponsors([])
+        }
+        
         setError(null)
       } catch (err) {
         console.error('Failed to fetch sponsors:', err)
         setError('Failed to load sponsors')
+        setSponsors([])
       } finally {
         setLoading(false)
       }
@@ -33,12 +44,20 @@ const Sponsors = () => {
     fetchSponsors()
   }, [])
 
+  // Ensure sponsors is always an array
+  const safeSponsors = Array.isArray(sponsors) ? sponsors : []
+
   // Get unique categories and partnership types
-  const categories = ['all', ...Array.from(new Set(sponsors.map(sponsor => sponsor.category)))]
-  const partnershipTypes = ['all', ...Array.from(new Set(sponsors.map(sponsor => sponsor.partnership_type)))]
+  const categories = safeSponsors.length > 0 
+    ? ['all', ...Array.from(new Set(safeSponsors.map(sponsor => sponsor.category).filter(Boolean)))]
+    : ['all']
+    
+  const partnershipTypes = safeSponsors.length > 0 
+    ? ['all', ...Array.from(new Set(safeSponsors.map(sponsor => sponsor.partnership_type).filter(Boolean)))]
+    : ['all']
 
   // Filter sponsors based on selected filters
-  const filteredSponsors = sponsors.filter(sponsor => {
+  const filteredSponsors = safeSponsors.filter(sponsor => {
     const categoryMatch = selectedCategory === 'all' || sponsor.category === selectedCategory
     const partnershipMatch = selectedPartnershipType === 'all' || sponsor.partnership_type === selectedPartnershipType
     return categoryMatch && partnershipMatch
@@ -48,7 +67,7 @@ const Sponsors = () => {
   const displayedSponsors = showAllSponsors ? filteredSponsors : filteredSponsors.slice(0, 6)
 
   // Get premium sponsors (using partnership_type as a proxy for premium)
-  const premiumSponsors = sponsors.filter(sponsor => sponsor.partnership_type === 'platinum')
+  const premiumSponsors = safeSponsors.filter(sponsor => sponsor.partnership_type === 'platinum')
 
   const getCategoryIcon = (category: string) => {
     switch (category.toLowerCase()) {

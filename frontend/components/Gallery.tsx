@@ -20,12 +20,23 @@ const Gallery = () => {
     const fetchGalleryItems = async () => {
       try {
         setLoading(true)
-        const data = await apiService.getGalleryItems()
-        setGalleryItems(data)
+        const response = await apiService.getGalleryItems()
+        
+        // Ensure we have an array of items
+        if (response && Array.isArray(response)) {
+          setGalleryItems(response)
+        } else if (response && response.data && Array.isArray(response.data)) {
+          setGalleryItems(response.data)
+        } else {
+          console.warn('Unexpected gallery data structure:', response)
+          setGalleryItems([])
+        }
+        
         setError(null)
       } catch (err) {
         console.error('Failed to fetch gallery items:', err)
         setError('Failed to load gallery items')
+        setGalleryItems([])
       } finally {
         setLoading(false)
       }
@@ -34,12 +45,20 @@ const Gallery = () => {
     fetchGalleryItems()
   }, [])
 
-  // Get unique categories and years
-  const categories = ['all', ...Array.from(new Set(galleryItems.map(item => item.category)))]
-  const years = ['all', ...Array.from(new Set(galleryItems.map(item => item.year)))]
+  // Ensure galleryItems is always an array and has items
+  const safeGalleryItems = Array.isArray(galleryItems) ? galleryItems : []
+  
+  // Get unique categories and years (only if we have items)
+  const categories = safeGalleryItems.length > 0 
+    ? ['all', ...Array.from(new Set(safeGalleryItems.map(item => item.category).filter(Boolean)))]
+    : ['all']
+    
+  const years = safeGalleryItems.length > 0 
+    ? ['all', ...Array.from(new Set(safeGalleryItems.map(item => item.year).filter(Boolean)))]
+    : ['all']
 
   // Filter items based on selected category and year
-  const filteredItems = galleryItems.filter(item => {
+  const filteredItems = safeGalleryItems.filter(item => {
     const categoryMatch = selectedCategory === 'all' || item.category === selectedCategory
     const yearMatch = selectedYear === 'all' || item.year === selectedYear
     return categoryMatch && yearMatch
@@ -49,7 +68,7 @@ const Gallery = () => {
   const displayedItems = showAllImages ? filteredItems : filteredItems.slice(0, 12)
 
   // Get featured items (using category as a proxy for featured)
-  const featuredItems = galleryItems.filter(item => item.category === 'tournament')
+  const featuredItems = safeGalleryItems.filter(item => item.category === 'tournament')
 
   const openImageModal = (item: GalleryItem) => {
     setSelectedImage(item)
@@ -118,6 +137,19 @@ const Gallery = () => {
         <div className="text-center">
           <p className="text-red-400 text-xl">{error}</p>
           <p className="text-gray-400 mt-2">Please try refreshing the page</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show message if no gallery items
+  if (safeGalleryItems.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-20">
+        <div className="text-center">
+          <Camera className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-400 text-xl">No gallery items available</p>
+          <p className="text-gray-500 mt-2">Check back later for updates</p>
         </div>
       </div>
     )
