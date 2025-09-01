@@ -1,263 +1,214 @@
-# 🚀 Render Deployment Guide for DIU Esports Community Portal
-
-This guide will walk you through deploying your DIU Esports Community Portal backend to Render.
+# 🚀 Render Deployment Guide for DIU Esports Backend
 
 ## 📋 Prerequisites
+- ✅ GitHub repository connected to Render
+- ✅ Render account created
+- ✅ Frontend already deployed on Vercel
 
-- ✅ GitHub repository with your code
-- ✅ Vercel frontend already deployed
-- ✅ Render account (free tier available)
-- ✅ Basic understanding of environment variables
+## 🗄️ Step 1: Create PostgreSQL Database
 
-## 🗄️ Step 1: Create PostgreSQL Database on Render
+1. **Go to Render Dashboard**
+   - Visit [render.com](https://render.com) and sign in
+   - Click "New +" → "PostgreSQL"
 
-1. **Login to Render Dashboard**
-   - Go to [render.com](https://render.com)
-   - Sign in to your account
+2. **Configure Database**
+   - **Name**: `diu-esports-db`
+   - **Database**: `diu_esports_db`
+   - **User**: `diu_esports_user`
+   - **Region**: Choose closest to your users (e.g., Oregon for US)
+   - **Plan**: Free (for testing) or Starter (for production)
 
-2. **Create New Database**
-   - Click "New +" button
-   - Select "PostgreSQL"
-   - Choose "Free" plan
-   - Set database name: `diu-esports-db`
-   - Set user: `diu_esports_user`
-   - Choose region closest to your users
-   - Click "Create Database"
-
-3. **Note Database Details**
-   - Save the connection details (host, database name, username, password, port)
+3. **Save Credentials**
+   - Copy the **Internal Database URL**
+   - Note down: Host, Database, Username, Password, Port
    - These will be used in environment variables
 
-## 🌐 Step 2: Deploy Backend Web Service
+## 🌐 Step 2: Create Web Service
 
-1. **Create New Web Service**
-   - Click "New +" button
-   - Select "Web Service"
-   - Connect your GitHub repository
-   - Choose the repository: `diuesports`
+1. **Create Service**
+   - Click "New +" → "Web Service"
+   - Connect your GitHub repository: `oficialasif/diuesports`
 
-2. **Configure Service Settings**
+2. **Configure Service**
    - **Name**: `diu-esports-backend`
-   - **Environment**: `PHP`
-   - **Build Command**: Leave empty (not needed for PHP)
-   - **Start Command**: Leave empty (Render handles PHP automatically)
-   - **Plan**: Free
+   - **Root Directory**: `backend` ⚠️ **CRITICAL SETTING**
+   - **Runtime**: `PHP`
+   - **Build Command**: Leave empty
+   - **Start Command**: `php -S 0.0.0.0:$PORT`
 
-3. **Set Environment Variables**
-   ```
+3. **Environment Variables**
+   Set these in the Render dashboard:
+
+   ```env
+   # Application
    APP_ENV=production
    APP_DEBUG=false
    APP_URL=https://your-app-name.onrender.com
-   FRONTEND_URL=https://your-vercel-app.vercel.app
+   FRONTEND_URL=https://diues.vercel.app
+   
+   # Database (use values from Step 1)
    DB_DRIVER=pgsql
    DB_HOST=your-postgres-host.render.com
-   DB_NAME=diu_esports
-   DB_USERNAME=diu_esports_user
-   DB_PASSWORD=your-database-password
+   DB_NAME=diu_esports_db
+   DB_USERNAME=your_db_username
+   DB_PASSWORD=your_db_password
    DB_PORT=5432
+   
+   # File Storage
    STORAGE_TYPE=local
    UPLOAD_PATH=uploads/
-   ALLOWED_FILE_TYPES=image/jpeg,image/png,image/gif,image/webp
    MAX_FILE_SIZE=5242880
+   ALLOWED_FILE_TYPES=image/jpeg,image/png,image/gif,image/webp
+   
+   # CORS & Security
+   CORS_ALLOWED_ORIGINS=https://diues.vercel.app,http://localhost:3000
+   SESSION_SECURE=true
+   SESSION_HTTP_ONLY=true
+   SESSION_SAME_SITE=Strict
+   
+   # Logging
+   LOG_LEVEL=error
+   TIMEZONE=UTC
    ```
 
-4. **Advanced Settings**
-   - **Health Check Path**: `/api/stats`
-   - **Auto-Deploy**: Enabled
-   - **Branch**: `master`
+## 🚀 Step 3: Deploy
 
-5. **Create Service**
-   - Click "Create Web Service"
-   - Wait for deployment to complete
+1. **Click "Create Web Service"**
+2. **Wait for deployment** (usually 2-5 minutes)
+3. **Check deployment logs** for any errors
+4. **Note your service URL**: `https://your-app-name.onrender.com`
 
-## 🔧 Step 3: Update Frontend Configuration
+## 🧪 Step 4: Test Backend
 
-1. **Update Frontend Environment Variables**
-   - Go to your Vercel dashboard
-   - Update `NEXT_PUBLIC_API_BASE_URL` to your Render backend URL
-   - Example: `https://diu-esports-backend.onrender.com/api`
+1. **Health Check**
+   - Visit: `https://your-app-name.onrender.com/test_render.php`
+   - Should show database connection success
 
-2. **Redeploy Frontend**
-   - Trigger a new deployment in Vercel
-   - This ensures the frontend connects to the new backend
+2. **API Test**
+   - Visit: `https://your-app-name.onrender.com/api`
+   - Should show API endpoints list
 
-## 🗄️ Step 4: Initialize Database
+3. **Database Setup**
+   - Visit: `https://your-app-name.onrender.com/install.php`
+   - Run the installation script to create tables
 
-1. **Access Your Render Backend**
-   - Go to your deployed service URL
-   - Add `/install.php` to the URL
-   - Example: `https://diu-esports-backend.onrender.com/install.php`
+## 🔗 Step 5: Connect Frontend
 
-2. **Run Database Setup**
-   - The install script will create all necessary tables
-   - Insert sample data
-   - Create admin user
+1. **Go to Vercel Dashboard**
+   - Visit [vercel.com](https://vercel.com)
+   - Select your `diues` project
 
-3. **Verify Installation**
-   - Check if all tables are created
-   - Verify admin user exists
-   - Test API endpoints
+2. **Set Environment Variables**
+   - Go to Settings → Environment Variables
+   - Add these variables:
 
-## 📁 Step 5: Configure File Storage
-
-### Option A: Local Storage (Default)
-- Files are stored in Render's ephemeral storage
-- **Note**: Files will be lost when the service restarts
-- Good for testing and development
-
-### Option B: Cloud Storage (Recommended for Production)
-
-#### AWS S3 Setup
-1. Create AWS S3 bucket
-2. Get access keys
-3. Set environment variables:
-   ```
-   STORAGE_TYPE=aws
-   AWS_ACCESS_KEY_ID=your-key
-   AWS_SECRET_ACCESS_KEY=your-secret
-   AWS_DEFAULT_REGION=us-east-1
-   AWS_S3_BUCKET=your-bucket-name
+   ```env
+   NEXT_PUBLIC_API_BASE_URL=https://your-app-name.onrender.com/api
+   NEXT_PUBLIC_SITE_URL=https://diues.vercel.app
+   NEXT_PUBLIC_APP_NAME="DIU Esports Community"
+   NEXT_PUBLIC_APP_VERSION="1.0.0"
+   NEXT_PUBLIC_APP_DESCRIPTION="Modern esports community portal for Daffodil International University"
    ```
 
-#### Cloudinary Setup
-1. Create Cloudinary account
-2. Get API credentials
-3. Set environment variables:
-   ```
-   STORAGE_TYPE=cloudinary
-   CLOUDINARY_CLOUD_NAME=your-cloud-name
-   CLOUDINARY_API_KEY=your-api-key
-   CLOUDINARY_API_SECRET=your-api-secret
-   ```
+3. **Redeploy Frontend**
+   - Go to Deployments
+   - Click "Redeploy" on the latest deployment
 
-## 🔒 Step 6: Security Configuration
+## ✅ Step 6: Final Testing
 
-1. **Update Admin Credentials**
-   - Change default admin password
-   - Use strong, unique passwords
-   - Enable two-factor authentication if possible
+1. **Frontend-Backend Connection**
+   - Visit your Vercel frontend
+   - Check browser console for API calls
+   - Verify no CORS errors
 
-2. **CORS Configuration**
-   - Ensure only your Vercel domain is allowed
-   - Remove localhost from production CORS
+2. **API Functionality**
+   - Test main features
+   - Check if data loads from backend
+   - Verify file uploads work (if applicable)
 
-3. **Environment Variables**
-   - Never commit sensitive data to Git
-   - Use Render's environment variable system
-   - Rotate passwords regularly
+3. **Admin Panel**
+   - Visit: `https://your-app-name.onrender.com/admin`
+   - Login with admin credentials
+   - Test admin functionality
 
-## 🧪 Step 7: Testing
+## 🔧 Troubleshooting
 
-1. **Test API Endpoints**
-   - Health check: `/api/stats`
-   - Tournaments: `/api/tournaments`
-   - Events: `/api/events`
-   - Admin login: `/admin/login.php`
+### Common Issues & Solutions
 
-2. **Test File Uploads**
-   - Upload images through admin panel
-   - Verify files are accessible
-   - Test file deletion
+#### 1. "Root Directory" Error
+- **Problem**: Service fails to start
+- **Solution**: Ensure Root Directory is set to `backend`, not repository root
 
-3. **Test Frontend Integration**
-   - Ensure frontend can fetch data
-   - Test all components
-   - Verify responsive design
+#### 2. Database Connection Failed
+- **Problem**: Health check shows database error
+- **Solution**: 
+  - Verify PostgreSQL credentials in environment variables
+  - Check if database service is running
+  - Ensure database name, user, and password are correct
 
-## 📊 Step 8: Monitoring
+#### 3. CORS Errors
+- **Problem**: Frontend can't connect to backend
+- **Solution**: 
+  - Verify `CORS_ALLOWED_ORIGINS` includes your Vercel domain
+  - Check `FRONTEND_URL` environment variable
 
-1. **Render Dashboard**
-   - Monitor service health
-   - Check logs for errors
-   - Monitor resource usage
+#### 4. File Upload Issues
+- **Problem**: Can't upload files
+- **Solution**: 
+  - Ensure `uploads/` directory exists and is writable
+  - Check `STORAGE_TYPE` and `UPLOAD_PATH` settings
 
-2. **Database Monitoring**
-   - Check database performance
-   - Monitor connection count
-   - Review slow queries
+#### 5. Service Won't Start
+- **Problem**: Deployment fails
+- **Solution**: 
+  - Check Start Command: `php -S 0.0.0.0:$PORT`
+  - Verify PHP runtime is selected
+  - Check deployment logs for specific errors
 
-3. **Error Logging**
-   - Check error logs regularly
-   - Set up alerts for critical errors
-   - Monitor API response times
+### Debug Commands
 
-## 🚨 Troubleshooting
+```bash
+# Check backend health
+curl https://your-app-name.onrender.com/test_render.php
 
-### Common Issues
+# Test API endpoint
+curl https://your-app-name.onrender.com/api
 
-1. **Database Connection Failed**
-   - Verify environment variables
-   - Check database status in Render
-   - Ensure database is accessible
-
-2. **File Upload Errors**
-   - Check upload directory permissions
-   - Verify file size limits
-   - Check storage configuration
-
-3. **CORS Errors**
-   - Verify frontend URL in CORS settings
-   - Check environment variables
-   - Clear browser cache
-
-4. **Service Won't Start**
-   - Check build logs
-   - Verify PHP version compatibility
-   - Check for syntax errors
-
-### Debug Mode
-
-To enable debug mode temporarily:
-```
-APP_DEBUG=true
+# Check CORS headers
+curl -H "Origin: https://diues.vercel.app" \
+     -H "Access-Control-Request-Method: GET" \
+     -H "Access-Control-Request-Headers: Content-Type" \
+     -X OPTIONS \
+     https://your-app-name.onrender.com/api
 ```
 
-**Remember to disable debug mode in production!**
-
-## 🔄 Updates and Maintenance
-
-1. **Automatic Deployments**
-   - Render automatically deploys on Git push
-   - Monitor deployment status
-   - Rollback if needed
-
-2. **Database Backups**
-   - Render provides automatic backups
-   - Download backups regularly
-   - Test restore procedures
-
-3. **Security Updates**
-   - Keep dependencies updated
-   - Monitor security advisories
-   - Apply patches promptly
-
-## 📞 Support
-
-- **Render Documentation**: [docs.render.com](https://docs.render.com)
-- **Render Support**: Available in dashboard
-- **Community Forums**: Stack Overflow, Reddit
-
-## 🎯 Next Steps
+## 📱 Final URLs
 
 After successful deployment:
 
-1. **Performance Optimization**
-   - Implement caching
-   - Optimize database queries
-   - Use CDN for static assets
+- **Frontend**: https://diues.vercel.app
+- **Backend**: https://your-app-name.onrender.com
+- **API**: https://your-app-name.onrender.com/api
+- **Admin**: https://your-app-name.onrender.com/admin
+- **Health Check**: https://your-app-name.onrender.com/test_render.php
 
-2. **Monitoring Setup**
-   - Set up uptime monitoring
-   - Configure error alerts
-   - Performance tracking
+## 🎯 Success Indicators
 
-3. **Backup Strategy**
-   - Regular database backups
-   - File storage backups
-   - Disaster recovery plan
+- ✅ Backend responds to health check
+- ✅ Database connection established
+- ✅ API endpoints accessible
+- ✅ Frontend can communicate with backend
+- ✅ No CORS errors in browser console
+- ✅ Admin panel functional
+- ✅ File uploads working (if applicable)
+
+## 📚 Additional Resources
+
+- [Render Documentation](https://render.com/docs)
+- [PHP on Render](https://render.com/docs/deploy-php)
+- [PostgreSQL on Render](https://render.com/docs/databases)
+- [CORS Configuration](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
 
 ---
 
-**🎉 Congratulations! Your DIU Esports Community Portal is now deployed on Render!**
-
-The backend is now accessible via your Render URL, and your Vercel frontend can communicate with it seamlessly.
+**Need Help?** Check the deployment logs in Render dashboard or refer to `DEPLOYMENT_CHECKLIST.md` for a step-by-step checklist.

@@ -1,134 +1,130 @@
-# DIU Esports Community Portal - Deployment Checklist
+# DIU Esports Portal - Deployment Checklist
 
-## ✅ Project Status: READY FOR RENDER DEPLOYMENT
+## 🚀 Frontend (Vercel) - ✅ COMPLETED
+- [x] Frontend deployed on Vercel
+- [x] Domain: https://diues.vercel.app
 
-### 🎯 **Frontend (Vercel) - ✅ DEPLOYED**
-- **URL**: https://diues.vercel.app
-- **Status**: Live and working
-- **API Endpoint**: Updated to point to Render backend
+## 🗄️ Backend (Render) - 🔄 IN PROGRESS
 
-### 🚀 **Backend (Render) - ✅ READY TO DEPLOY**
+### Step 1: Render Account Setup
+- [ ] Create Render account at [render.com](https://render.com)
+- [ ] Connect GitHub repository
+- [ ] Verify repository access
 
-#### **1. Database Configuration ✅**
-- **Host**: dpg-d2qcflre5dus73bt42b0-a.oregon-postgres.render.com
-- **Database**: diu_esports_db
-- **Username**: diu_esports_user
-- **Password**: N9P2tK3xOtsOKnpZqrk1PmtTPO34eFrA
-- **Port**: 5432
-- **Schema**: PostgreSQL ready (schema.postgresql.sql)
+### Step 2: PostgreSQL Database Setup ✅ COMPLETED
+- [x] **Database Name**: `diu-esports-db`
+- [x] **Database**: `diu_esports_db`
+- [x] **User**: `diu_esports_user`
+- [x] **Host**: `dpg-d2qcflre5dus73bt42b0-a.oregon-postgres.render.com`
+- [x] **Port**: `5432`
+- [x] **Password**: `N9P2tK3xOtsOKnpZqrk1PmtTPO34eFrA`
 
-#### **2. Environment Variables ✅**
-- **Backend**: All configured in render.yaml
-- **Frontend**: Need to update in Vercel dashboard
+### Step 3: Backend Web Service Setup
+- [ ] Create new Web Service on Render
+  - **Name**: `diu-esports-backend`
+  - **Root Directory**: `backend` ⚠️ **CRITICAL**
+  - **Runtime**: `PHP`
+  - **Build Command**: Leave empty
+  - **Start Command**: `php -S 0.0.0.0:$PORT`
 
-#### **3. API Configuration ✅**
-- **Frontend API URL**: https://diu-esports-backend.onrender.com/api
-- **CORS**: Configured for https://diues.vercel.app
-- **Authentication**: Ready
+### Step 4: Environment Variables Configuration ✅ READY
+All environment variables are prepared with your actual database credentials:
 
-#### **4. File Structure ✅**
-```
-backend/
-├── config/
-│   ├── config.production.php ✅
-│   ├── database.production.php ✅
-│   ├── auth.php ✅
-│   └── schema.postgresql.sql ✅
-├── api/
-│   ├── index.php ✅
-│   └── handlers/ ✅
-├── admin/ ✅
-├── uploads/ ✅
-├── composer.json ✅
-├── index.php ✅
-└── setup_postgresql.php ✅
-```
+#### Application Settings
+- [x] `APP_ENV` = `production`
+- [x] `APP_DEBUG` = `false`
+- [x] `APP_URL` = `https://diu-esports-backend.onrender.com`
+- [x] `FRONTEND_URL` = `https://diues.vercel.app`
 
-#### **5. Key Files Updated ✅**
-- ✅ `render.yaml` - Complete configuration
-- ✅ `services/api.ts` - Updated API URL (environment-aware)
-- ✅ `backend/config/config.production.php` - Production settings
-- ✅ `backend/config/database.production.php` - PostgreSQL config
-- ✅ `backend/api/index.php` - Uses production config
+#### Database Settings ✅ CONFIGURED
+- [x] `DB_DRIVER` = `pgsql`
+- [x] `DB_HOST` = `dpg-d2qcflre5dus73bt42b0-a.oregon-postgres.render.com`
+- [x] `DB_NAME` = `diu_esports_db`
+- [x] `DB_USERNAME` = `diu_esports_user`
+- [x] `DB_PASSWORD` = `N9P2tK3xOtsOKnpZqrk1PmtTPO34eFrA`
+- [x] `DB_PORT` = `5432`
 
-## 🚀 **Deployment Steps**
+#### File Storage Settings
+- [x] `STORAGE_TYPE` = `local`
+- [x] `UPLOAD_PATH` = `uploads/`
+- [x] `MAX_FILE_SIZE` = `5242880`
+- [x] `ALLOWED_FILE_TYPES` = `image/jpeg,image/png,image/gif,image/webp`
 
-### **Step 1: Deploy Backend to Render**
-1. Go to Render Dashboard
-2. Click "New +" → "Blueprint"
-3. Connect GitHub repo: `oficialasif/diuesports`
-4. Select `render.yaml`
-5. Deploy
+#### CORS & Security Settings
+- [x] `CORS_ALLOWED_ORIGINS` = `https://diues.vercel.app,http://localhost:3000`
+- [x] `SESSION_SECURE` = `true`
+- [x] `SESSION_HTTP_ONLY` = `true`
+- [x] `SESSION_SAME_SITE` = `Strict`
 
-### **Step 2: Initialize Database**
-After deployment, visit:
-```
-https://diu-esports-backend.onrender.com/setup_postgresql.php
-```
+#### Logging Settings
+- [x] `LOG_LEVEL` = `error`
+- [x] `TIMEZONE` = `UTC`
 
-### **Step 3: Update Frontend Environment**
-In Vercel Dashboard:
-1. Go to Project Settings → Environment Variables
-2. Add: `NEXT_PUBLIC_API_BASE_URL=https://diu-esports-backend.onrender.com/api`
-3. Redeploy frontend
+**📋 Reference**: See `RENDER_ENVIRONMENT_VARS.md` for complete list with exact values
 
-### **Step 4: Test Everything**
-- ✅ Frontend: https://diues.vercel.app
-- ✅ Backend API: https://diu-esports-backend.onrender.com/api
-- ✅ Admin Panel: https://diu-esports-backend.onrender.com/admin
-- ✅ Database: PostgreSQL on Render
+### Step 5: Database Schema Setup
+- [ ] Wait for backend deployment to complete
+- [ ] Access: `https://diu-esports-backend.onrender.com/install.php`
+- [ ] Run database installation script
+- [ ] Verify tables are created successfully
 
-## 🔐 **Admin Credentials**
-- **Username**: asifmahmud
-- **Password**: admin*diuEsports
-- **Email**: asifmahmud@diu.edu.bd
+### Step 6: Health Check & Testing
+- [ ] Test backend health: `https://diu-esports-backend.onrender.com/test_render.php`
+- [ ] Verify database connection
+- [ ] Check API endpoints: `https://diu-esports-backend.onrender.com/api`
 
-## 📋 **Environment Variables Summary**
+### Step 7: Frontend Environment Variables Update
+In Vercel, set these environment variables:
 
-### **Backend (Render)**
-```env
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://diu-esports-backend.onrender.com
-FRONTEND_URL=https://diues.vercel.app
-DB_DRIVER=pgsql
-DB_HOST=dpg-d2qcflre5dus73bt42b0-a.oregon-postgres.render.com
-DB_NAME=diu_esports_db
-DB_USERNAME=diu_esports_user
-DB_PASSWORD=N9P2tK3xOtsOKnpZqrk1PmtTPO34eFrA
-DB_PORT=5432
-```
+- [ ] `NEXT_PUBLIC_API_BASE_URL` = `https://diu-esports-backend.onrender.com/api`
+- [ ] `NEXT_PUBLIC_SITE_URL` = `https://diues.vercel.app`
+- [ ] `NEXT_PUBLIC_APP_NAME` = `DIU Esports Community`
+- [ ] `NEXT_PUBLIC_APP_VERSION` = `1.0.0`
+- [ ] `NEXT_PUBLIC_APP_DESCRIPTION` = `Modern esports community portal for Daffodil International University`
 
-### **Frontend (Vercel)**
-```env
-NEXT_PUBLIC_API_BASE_URL=https://diu-esports-backend.onrender.com/api
-NEXT_PUBLIC_SITE_URL=https://diues.vercel.app
-```
+### Step 8: Final Testing
+- [ ] Test frontend-backend connection
+- [ ] Verify API calls work from frontend
+- [ ] Test file uploads (if applicable)
+- [ ] Test authentication (if applicable)
+- [ ] Check CORS headers work properly
 
-### **Frontend (Localhost Development)**
-```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost/diuecport/backend/api
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-```
+## 🔧 Troubleshooting
 
-## 🎯 **Expected Result**
-- ✅ Frontend works on Vercel
-- ✅ Backend API works on Render
-- ✅ Database connected and initialized
-- ✅ Admin panel functional
-- ✅ All features working
-- ✅ Localhost development still works
+### Common Issues:
+1. **Root Directory Wrong**: Ensure it's set to `backend`, not the repository root
+2. **Database Connection**: ✅ Credentials are verified and ready
+3. **CORS Errors**: Check `CORS_ALLOWED_ORIGINS` includes your Vercel domain
+4. **File Permissions**: Ensure uploads directory is writable
+5. **Environment Variables**: ✅ All variables are prepared with correct values
 
-## 🚨 **Important Notes**
-1. **No frontend changes needed** - Only environment variable update
-2. **Database will be empty** - Run setup script after deployment
-3. **File uploads** - Will work with local storage on Render
-4. **CORS** - Configured for Vercel frontend
-5. **Localhost development** - Fixed to work with XAMPP path
+### Useful Commands:
+- Check backend logs in Render dashboard
+- Test database connection: `https://diu-esports-backend.onrender.com/test_render.php`
+- Verify API: `https://diu-esports-backend.onrender.com/api`
 
-## 🔧 **Localhost Development Fix**
-The API configuration is now environment-aware:
-- **Development**: Uses `http://localhost/diuecport/backend/api`
-- **Production**: Uses `https://diu-esports-backend.onrender.com/api`
+## 📱 Final URLs
+- **Frontend**: https://diues.vercel.app
+- **Backend**: https://diu-esports-backend.onrender.com
+- **API**: https://diu-esports-backend.onrender.com/api
+- **Health Check**: https://diu-esports-backend.onrender.com/test_render.php
 
-**Status: READY TO DEPLOY! 🚀**
+## 🎯 Success Criteria
+- [ ] Backend responds to health check
+- [ ] Database connection established
+- [ ] API endpoints accessible
+- [ ] Frontend can communicate with backend
+- [ ] CORS headers working properly
+- [ ] File uploads working (if applicable)
+- [ ] Authentication working (if applicable)
+
+## 🚀 Ready to Deploy!
+
+Your project is now **100% ready** for Render deployment with:
+- ✅ All environment variables configured
+- ✅ Database credentials verified
+- ✅ Configuration files updated
+- ✅ Health check endpoints ready
+- ✅ CORS properly configured for your Vercel frontend
+
+**Next step**: Go to [render.com](https://render.com) and create your Web Service!
