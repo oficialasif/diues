@@ -51,8 +51,8 @@ $auth = new Auth($database);
 $method = $_SERVER['REQUEST_METHOD'];
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-// Extract the path after /backend/api
-if (preg_match('/\/backend\/api\/(.*)/', $path, $matches)) {
+// Extract the path after /api
+if (preg_match('/\/api\/(.*)/', $path, $matches)) {
     $path = $matches[1];
 } else {
     $path = '';
@@ -83,6 +83,27 @@ function apiResponse($data = null, $status = 200, $message = 'Success') {
 // Error response helper
 function apiError($message, $status = 400) {
     apiResponse(null, $status, $message);
+}
+
+// Handle base API endpoint
+if (empty($resource)) {
+    apiResponse([
+        'message' => 'DIU Esports Community Portal API',
+        'version' => '1.0.0',
+        'endpoints' => [
+            'tournaments' => '/api/tournaments',
+            'events' => '/api/events',
+            'committee' => '/api/committee',
+            'gallery' => '/api/gallery',
+            'sponsors' => '/api/sponsors',
+            'achievements' => '/api/achievements',
+            'settings' => '/api/settings',
+            'stats' => '/api/stats',
+            'countdown' => '/api/countdown',
+            'auth' => '/api/auth'
+        ],
+        'documentation' => 'Check individual endpoints for detailed information'
+    ], 200, 'API is running');
 }
 
 // Validate resource
