@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { apiService, Tournament } from '@/services/api'
+import { apiService } from '@/services/api'
 
 export default function DebugPage() {
   const [apiUrl, setApiUrl] = useState('')
-  const [tournaments, setTournaments] = useState<Tournament[]>([])
+  const [tournaments, setTournaments] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -14,7 +14,7 @@ export default function DebugPage() {
     const url = process.env.NEXT_PUBLIC_API_BASE_URL || 
       (process.env.NODE_ENV === 'production' 
         ? 'https://diu-esports-backend.onrender.com/api'
-        : 'http://localhost:8080/api'
+        : 'http://localhost/diuecport/backend/api'
       )
     setApiUrl(url)
   }, [])
