@@ -31,9 +31,9 @@
 
 2. **Configure Service**
    - **Name**: `diu-esports-backend`
-   - **Root Directory**: `backend` ⚠️ **CRITICAL SETTING**
-   - **Runtime**: `PHP`
-   - **Build Command**: Leave empty
+   - **Root Directory**: `backend` ⚠️ **CRITICAL**
+   - **Runtime**: `PHP` ⚠️ **MUST SELECT PHP**
+   - **Build Command**: Leave empty or use `echo "PHP ready"`
    - **Start Command**: `php -S 0.0.0.0:$PORT`
 
 3. **Environment Variables**
@@ -135,35 +135,57 @@
 
 ### Common Issues & Solutions
 
-#### 1. "Root Directory" Error
+#### 1. "php: command not found" Error ⚠️ **CRITICAL**
+- **Problem**: PHP runtime not available
+- **Solution**: 
+  - **MUST select "PHP" as Runtime** in Render service creation
+  - Ensure "Root Directory" is set to `backend`
+  - Try alternative start command: `php -S 0.0.0.0:$PORT index.php`
+
+#### 2. "Root Directory" Error
 - **Problem**: Service fails to start
 - **Solution**: Ensure Root Directory is set to `backend`, not repository root
 
-#### 2. Database Connection Failed
+#### 3. Database Connection Failed
 - **Problem**: Health check shows database error
 - **Solution**: 
   - Verify PostgreSQL credentials in environment variables
   - Check if database service is running
   - Ensure database name, user, and password are correct
 
-#### 3. CORS Errors
+#### 4. CORS Errors
 - **Problem**: Frontend can't connect to backend
 - **Solution**: 
   - Verify `CORS_ALLOWED_ORIGINS` includes your Vercel domain
   - Check `FRONTEND_URL` environment variable
 
-#### 4. File Upload Issues
+#### 5. File Upload Issues
 - **Problem**: Can't upload files
 - **Solution**: 
   - Ensure `uploads/` directory exists and is writable
   - Check `STORAGE_TYPE` and `UPLOAD_PATH` settings
 
-#### 5. Service Won't Start
+#### 6. Service Won't Start
 - **Problem**: Deployment fails
 - **Solution**: 
   - Check Start Command: `php -S 0.0.0.0:$PORT`
   - Verify PHP runtime is selected
   - Check deployment logs for specific errors
+
+### Alternative Start Commands to Try:
+```bash
+# Option 1: Standard PHP server
+php -S 0.0.0.0:$PORT
+
+# Option 2: With specific entry point
+php -S 0.0.0.0:$PORT index.php
+
+# Option 3: With host binding
+php -S 0.0.0.0:$PORT -t .
+
+# Option 4: Alternative port binding
+php -S 0.0.0.0:$PORT --host 0.0.0.0
+```
 
 ### Debug Commands
 

@@ -3,6 +3,8 @@ services:
     name: diu-esports-backend
     plan: free
     rootDir: backend
+    runtime: php
+    buildCommand: "echo 'PHP runtime ready'"
     startCommand: "php -S 0.0.0.0:$PORT"
     envVars:
       - key: APP_ENV
