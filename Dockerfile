@@ -24,10 +24,18 @@ RUN mkdir -p backend/uploads/{highlights,icons,logos,photos,posters} \
     && chmod -R 755 backend/logs \
     && chown -R www-data:www-data /var/www/html
 
-# Configure Apache to serve from backend directory
-RUN echo '<VirtualHost *:80>\n\
+# Debug: Check file structure and permissions
+RUN ls -la /var/www/html/ && \
+    ls -la /var/www/html/backend/ && \
+    echo "File structure verified"
+
+# Create a proper Apache configuration file
+RUN echo 'ServerName localhost\n\
+<VirtualHost *:80>\n\
+    ServerAdmin webmaster@localhost\n\
     DocumentRoot /var/www/html/backend\n\
     <Directory /var/www/html/backend>\n\
+        Options Indexes FollowSymLinks\n\
         AllowOverride All\n\
         Require all granted\n\
         DirectoryIndex index.php index.html\n\
@@ -35,6 +43,9 @@ RUN echo '<VirtualHost *:80>\n\
     ErrorLog ${APACHE_LOG_DIR}/error.log\n\
     CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
 </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
+
+# Enable the site
+RUN a2ensite 000-default
 
 # Expose port
 EXPOSE 80
