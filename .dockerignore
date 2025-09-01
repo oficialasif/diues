@@ -1,0 +1,31 @@
+# Exclude frontend files (not needed for backend)
+frontend/
+node_modules/
+*.log
+
+# Exclude development files
+.env
+.env.local
+.env.development
+
+# Exclude git files
+.git/
+.gitignore
+
+# Exclude documentation (not needed in container)
+*.md
+DEPLOYMENT_*.md
+RENDER_*.md
+PHP_*.md
+
+# Exclude deployment scripts
+deploy-*.sh
+render.yaml
+
+# Exclude logs and uploads (will be created in container)
+logs/
+backend/uploads/
+
+# Exclude OS files
+.DS_Store
+Thumbs.db
