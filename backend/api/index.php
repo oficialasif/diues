@@ -31,7 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Determine if we're in production or development
-$isProduction = isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'render.com') !== false;
+$isProduction = isset($_SERVER['HTTP_HOST']) && (
+    strpos($_SERVER['HTTP_HOST'], 'render.com') !== false ||
+    strpos($_SERVER['HTTP_HOST'], 'onrender.com') !== false ||
+    (isset($_ENV['APP_ENV']) && $_ENV['APP_ENV'] === 'production')
+);
 
 if ($isProduction) {
     // Load production configuration for Render

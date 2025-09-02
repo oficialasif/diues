@@ -7,9 +7,11 @@
 // Load environment variables
 if (file_exists(__DIR__ . '/../.env.production')) {
     $env = parse_ini_file(__DIR__ . '/../.env.production');
-    foreach ($env as $key => $value) {
-        $_ENV[$key] = $value;
-        putenv("$key=$value");
+    if ($env !== false && is_array($env)) {
+        foreach ($env as $key => $value) {
+            $_ENV[$key] = $value;
+            putenv("$key=$value");
+        }
     }
 }
 
