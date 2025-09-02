@@ -1,14 +1,11 @@
 <?php
-// Start session at the very beginning
-session_start();
+// Load common authentication
+require_once 'auth_common.php';
 
-require_once '../config/auth.php';
-require_once '../config/database.php';
-
-$auth = new Auth(new Database());
+// Require admin authentication
 $auth->requireAdmin();
 
-$database = new Database();
+$user = $auth->getCurrentUser();
 
 $message = '';
 $error = '';
