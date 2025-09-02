@@ -2,7 +2,22 @@
 // Start session at the very beginning
 session_start();
 
-require_once '../config/database.php';
+// Determine if we're in production or development
+$isProduction = isset($_SERVER['HTTP_HOST']) && (
+    strpos($_SERVER['HTTP_HOST'], 'render.com') !== false ||
+    strpos($_SERVER['HTTP_HOST'], 'onrender.com') !== false ||
+    (isset($_ENV['APP_ENV']) && $_ENV['APP_ENV'] === 'production')
+);
+
+if ($isProduction) {
+    // Load production configuration for Render
+    require_once '../config/config.production.php';
+    require_once '../config/database.production.php';
+} else {
+    // Load local configuration for XAMPP
+    require_once '../config/database.php';
+}
+
 require_once '../config/auth.php';
 
 $database = new Database();
@@ -137,7 +152,11 @@ if ($auth->isLoggedIn()) {
                 <div class="text-xs text-gray-400 space-y-1">
                     <?php
                     try {
-                        require_once '../config/database.php';
+                        if ($isProduction) {
+                            require_once '../config/database.production.php';
+                        } else {
+                            require_once '../config/database.php';
+                        }
                         $db = new Database();
                         $conn = $db->getConnection();
                         echo "<div>✅ Database: Connected</div>";
