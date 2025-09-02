@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['localhost', 'localhost:8080'],
+    domains: ['localhost', 'localhost:8080', 'diu-esports-backend.onrender.com'],
     unoptimized: true,
   },
   webpack: (config) => {
