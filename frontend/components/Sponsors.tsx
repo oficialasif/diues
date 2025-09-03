@@ -24,8 +24,7 @@ const Sponsors = () => {
         // Ensure we have an array of sponsors
         if (response && Array.isArray(response)) {
           setSponsors(response)
-        } else if (response && response.data && Array.isArray(response.data)) {
-          setSponsors(response.data)
+
         } else {
           console.warn('Unexpected sponsors data structure:', response)
           setSponsors([])

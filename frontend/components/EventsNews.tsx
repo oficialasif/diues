@@ -23,8 +23,7 @@ const EventsNews = () => {
         // Ensure we have an array of events
         if (response && Array.isArray(response)) {
           setEvents(response)
-        } else if (response && response.data && Array.isArray(response.data)) {
-          setEvents(response.data)
+
         } else {
           console.warn('Unexpected events data structure:', response)
           setEvents([])

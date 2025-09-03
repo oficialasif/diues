@@ -23,8 +23,6 @@ const Achievements = () => {
         // Ensure we have an array of achievements
         if (response && Array.isArray(response)) {
           setAchievements(response)
-        } else if (response && response.data && Array.isArray(response.data)) {
-          setAchievements(response.data)
         } else {
           console.warn('Unexpected achievements data structure:', response)
           setAchievements([])

@@ -25,8 +25,7 @@ const Gallery = () => {
         // Ensure we have an array of items
         if (response && Array.isArray(response)) {
           setGalleryItems(response)
-        } else if (response && response.data && Array.isArray(response.data)) {
-          setGalleryItems(response.data)
+
         } else {
           console.warn('Unexpected gallery data structure:', response)
           setGalleryItems([])

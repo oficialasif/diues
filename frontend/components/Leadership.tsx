@@ -22,8 +22,7 @@ const Leadership = () => {
         // Ensure we have an array of committee members
         if (response && Array.isArray(response)) {
           setCommitteeMembers(response)
-        } else if (response && response.data && Array.isArray(response.data)) {
-          setCommitteeMembers(response.data)
+
         } else {
           console.warn('Unexpected committee members data structure:', response)
           setCommitteeMembers([])

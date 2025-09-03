@@ -40,8 +40,7 @@ const GamesPortfolio = () => {
         // Ensure we have an array of tournaments
         if (response && Array.isArray(response)) {
           setTournaments(response)
-        } else if (response && response.data && Array.isArray(response.data)) {
-          setTournaments(response.data)
+
         } else {
           console.warn('Unexpected tournaments data structure:', response)
           setTournaments([])
