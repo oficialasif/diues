@@ -145,7 +145,7 @@ const GamesPortfolio = () => {
   const removeTeamMember = (index: number) => {
     setRegistrationForm(prev => ({
       ...prev,
-      team_members: prev.team_members.filter((_, i) => i !== index)
+      team_members: (prev.team_members || []).filter((_, i) => i !== index)
     }))
   }
 
@@ -153,7 +153,7 @@ const GamesPortfolio = () => {
   const handleTeamMemberChange = (index: number, field: keyof TournamentTeamMember, value: any) => {
     setRegistrationForm(prev => ({
       ...prev,
-      team_members: prev.team_members.map((member, i) => 
+      team_members: (prev.team_members || []).map((member, i) => 
         i === index ? { ...member, [field]: value } : member
       )
     }))
