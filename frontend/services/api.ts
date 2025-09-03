@@ -3,8 +3,8 @@
 // API Configuration - Environment aware
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 
   (process.env.NODE_ENV === 'production' 
-    ? 'https://diu-esports-backend.onrender.com/api'
-    : 'http://localhost:8080/api'
+    ? 'https://diu-esports-backend.onrender.com/api_working'
+    : 'http://localhost:8080/api_working'
   );
 
 export interface ApiResponse<T = any> {
