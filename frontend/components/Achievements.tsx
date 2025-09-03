@@ -20,7 +20,7 @@ const Achievements = () => {
         setLoading(true)
         const response = await apiService.getAchievements()
         
-        // Ensure we have an array of achievements
+        // Ensure we have an array of achievements (fixed TypeScript error)
         if (response && Array.isArray(response)) {
           setAchievements(response)
         } else {
