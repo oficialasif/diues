@@ -3,8 +3,8 @@
 // API Configuration - Environment aware
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 
   (process.env.NODE_ENV === 'production' 
-    ? 'https://diu-esports-backend.onrender.com/api_working'
-    : 'http://localhost:8080/api_working'
+    ? 'https://diu-esports-backend.onrender.com'
+    : 'http://localhost:8080'
   );
 
 export interface ApiResponse<T = any> {
@@ -214,7 +214,7 @@ class ApiService {
 
   // Tournaments
   async getTournaments(): Promise<Tournament[]> {
-    const response = await this.request<Tournament[]>('tournaments');
+    const response = await this.request<Tournament[]>('tournaments.php');
     return response.data;
   }
 
@@ -246,7 +246,7 @@ class ApiService {
 
   // Events
   async getEvents(): Promise<Event[]> {
-    const response = await this.request<Event[]>('events');
+    const response = await this.request<Event[]>('events.php');
     return response.data;
   }
 
@@ -257,7 +257,7 @@ class ApiService {
 
   // Committee
   async getCommitteeMembers(): Promise<CommitteeMember[]> {
-    const response = await this.request<CommitteeMember[]>('committee');
+    const response = await this.request<CommitteeMember[]>('committee.php');
     return response.data;
   }
 
