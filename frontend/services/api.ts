@@ -313,17 +313,17 @@ class ApiService {
 
   // Stats
   async getStats(): Promise<Stats> {
-    const response = await this.request<Stats>('stats');
+    const response = await this.request<Stats>('stats.php');
     return response.data;
   }
 
   async getCountdownSettings(): Promise<CountdownSettings> {
-    const response = await this.request<CountdownSettings>('countdown');
+    const response = await this.request<CountdownSettings>('countdown.php');
     return response.data;
   }
 
   async updateCountdownSettings(settings: Partial<CountdownSettings>): Promise<CountdownSettings> {
-    const response = await this.request<CountdownSettings>('countdown', {
+    const response = await this.request<CountdownSettings>('countdown.php', {
       method: 'PUT',
       body: JSON.stringify(settings)
     });
