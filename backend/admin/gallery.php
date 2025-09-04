@@ -22,7 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $category = $_POST['category'] ?? '';
         $year = intval($_POST['year'] ?? date('Y'));
         $is_featured = isset($_POST['is_featured']) ? true : false;
-        $tags = trim($_POST['tags'] ?? '');
+        $tags_input = trim($_POST['tags'] ?? '');
+        // Convert tags string to JSON array for PostgreSQL JSONB field
+        $tags = $tags_input ? json_encode(explode(',', $tags_input)) : null;
         
         // Handle image upload
         $image_url = '';
@@ -50,14 +52,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             try {
                 if ($post_action === 'add') {
-                    $sql = "INSERT INTO gallery (title, description, image_url, category, year, is_featured, tags) VALUES (?, ?, ?, ?, ?, ?, ?)";
-                    $database->execute($sql, [$title, $description, $image_url, $category, $year, $is_featured, $tags]);
+                    $sql = "INSERT INTO gallery (title, description, image_url, video_url, category, year, is_featured, tags) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                    $database->execute($sql, [$title, $description, $image_url, null, $category, $year, $is_featured, $tags]);
                     $message = 'Gallery item added successfully!';
                     $action = 'list';
                 } else {
                     $id = intval($_POST['id']);
-                    $sql = "UPDATE gallery SET title = ?, description = ?, image_url = ?, category = ?, year = ?, is_featured = ?, tags = ? WHERE id = ?";
-                    $database->execute($sql, [$title, $description, $image_url, $category, $year, $is_featured, $tags, $id]);
+                    $sql = "UPDATE gallery SET title = ?, description = ?, image_url = ?, video_url = ?, category = ?, year = ?, is_featured = ?, tags = ? WHERE id = ?";
+                    $database->execute($sql, [$title, $description, $image_url, null, $category, $year, $is_featured, $tags, $id]);
                     $message = 'Gallery item updated successfully!';
                     $action = 'list';
                 }
