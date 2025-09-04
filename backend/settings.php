@@ -35,7 +35,7 @@ try {
     $database = new Database();
     $pdo = $database->getConnection();
     
-    $stmt = $pdo->query("SELECT * FROM site_settings ORDER BY created_at DESC");
+    $stmt = $pdo->query("SELECT * FROM site_settings ORDER BY updated_at DESC");
     $settings = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     $result = [
