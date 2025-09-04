@@ -279,7 +279,7 @@ class ApiService {
 
   // Gallery
   async getGalleryItems(): Promise<GalleryItem[]> {
-    const response = await this.request<GalleryItem[]>('gallery');
+    const response = await this.request<GalleryItem[]>('gallery.php');
     return response.data;
   }
 
@@ -290,7 +290,7 @@ class ApiService {
 
   // Sponsors
   async getSponsors(): Promise<Sponsor[]> {
-    const response = await this.request<Sponsor[]>('sponsors');
+    const response = await this.request<Sponsor[]>('sponsors.php');
     return response.data;
   }
 
