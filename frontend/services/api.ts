@@ -1,11 +1,16 @@
 
 
 // API Configuration - Environment aware
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 
+let API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 
   (process.env.NODE_ENV === 'production' 
     ? 'https://diu-esports-backend.onrender.com'
     : 'http://localhost:8080'
   );
+
+// Remove /api suffix if it exists (for backward compatibility)
+if (API_BASE_URL.endsWith('/api')) {
+  API_BASE_URL = API_BASE_URL.replace('/api', '');
+}
 
 export interface ApiResponse<T = any> {
   success: boolean;

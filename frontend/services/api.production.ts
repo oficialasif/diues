@@ -1,7 +1,7 @@
 // Production API Configuration for DIU Esports Community Portal
 // Update your frontend environment variables to use this configuration
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://diu-esports-backend.onrender.com/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://diu-esports-backend.onrender.com';
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -47,7 +47,7 @@ export const apiService = new ApiService();
 export default apiService;
 
 // Environment Variables to set in Vercel:
-// NEXT_PUBLIC_API_BASE_URL=https://diu-esports-backend.onrender.com/api
+// NEXT_PUBLIC_API_BASE_URL=https://diu-esports-backend.onrender.com
 // NEXT_PUBLIC_SITE_URL=https://diues.vercel.app
 // NEXT_PUBLIC_APP_NAME="DIU Esports Community"
 // NEXT_PUBLIC_APP_VERSION="1.0.0"
