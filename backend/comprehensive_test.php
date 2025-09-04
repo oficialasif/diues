@@ -56,7 +56,7 @@ try {
     ];
     
     // Test 4: Database tables
-    $tables = ['events', 'committee_members', 'tournaments', 'gallery', 'sponsors', 'achievements'];
+    $tables = ['events', 'committee_members', 'tournaments', 'gallery', 'sponsors', 'achievements', 'games'];
     $tableResults = [];
     
     foreach ($tables as $table) {
