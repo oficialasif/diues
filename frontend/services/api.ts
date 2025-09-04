@@ -277,7 +277,7 @@ class ApiService {
     return response.data;
   }
 
-  // Gallery
+  // Gallery - Updated to use direct PHP endpoints
   async getGalleryItems(): Promise<GalleryItem[]> {
     const response = await this.request<GalleryItem[]>('gallery.php');
     return response.data;
@@ -288,7 +288,7 @@ class ApiService {
     return response.data;
   }
 
-  // Sponsors
+  // Sponsors - Updated to use direct PHP endpoints
   async getSponsors(): Promise<Sponsor[]> {
     const response = await this.request<Sponsor[]>('sponsors.php');
     return response.data;
