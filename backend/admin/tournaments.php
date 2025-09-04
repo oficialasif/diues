@@ -167,7 +167,7 @@ if ($action === 'list') {
 // Get games for dropdown
 $games = [];
 try {
-    $games = $database->queryAll("SELECT id, name FROM games WHERE is_active = 1 ORDER BY name");
+    $games = $database->queryAll("SELECT id, name FROM games WHERE is_active = true ORDER BY name");
 } catch (Exception $e) {
     $error = 'Error loading games: ' . $e->getMessage();
 }

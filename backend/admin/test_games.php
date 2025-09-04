@@ -29,7 +29,7 @@ try {
     echo "Total games in table: $count<br>";
     
     echo "<h2>Active Games Query:</h2>";
-    $stmt = $pdo->query("SELECT id, name FROM games WHERE is_active = 1 ORDER BY name");
+    $stmt = $pdo->query("SELECT id, name FROM games WHERE is_active = true ORDER BY name");
     $games = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo "Active games found: " . count($games) . "<br>";
@@ -40,7 +40,7 @@ try {
     echo "</ul>";
     
     echo "<h2>Database Class Test:</h2>";
-    $gamesFromClass = $database->queryAll("SELECT id, name FROM games WHERE is_active = 1 ORDER BY name");
+    $gamesFromClass = $database->queryAll("SELECT id, name FROM games WHERE is_active = true ORDER BY name");
     echo "Games from database class: " . count($gamesFromClass) . "<br>";
     echo "<pre>" . print_r($gamesFromClass, true) . "</pre>";
     
