@@ -301,7 +301,7 @@ class ApiService {
 
   // Achievements
   async getAchievements(): Promise<Achievement[]> {
-    const response = await this.request<Achievement[]>('achievements');
+    const response = await this.request<Achievement[]>('achievements.php');
     return response.data;
   }
 
@@ -312,7 +312,7 @@ class ApiService {
 
   // Settings
   async getSiteSettings(): Promise<SiteSettings> {
-    const response = await this.request<SiteSettings>('settings');
+    const response = await this.request<SiteSettings>('settings.php');
     return response.data;
   }
 
