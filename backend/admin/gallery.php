@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $description = trim($_POST['description'] ?? '');
         $category = $_POST['category'] ?? '';
         $year = intval($_POST['year'] ?? date('Y'));
-        $is_featured = isset($_POST['is_featured']) ? 1 : 0;
+        $is_featured = isset($_POST['is_featured']) ? true : false;
         $tags = trim($_POST['tags'] ?? '');
         
         // Handle image upload

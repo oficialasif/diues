@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $partnership_type = $_POST['partnership_type'] ?? '';
         $website_url = trim($_POST['website_url'] ?? '');
         $benefits = trim($_POST['benefits'] ?? '');
-        $is_active = isset($_POST['is_active']) ? 1 : 0;
+        $is_active = isset($_POST['is_active']) ? true : false;
         
         // Handle logo upload
         $logo_url = '';
