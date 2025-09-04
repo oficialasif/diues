@@ -198,8 +198,12 @@ class ApiService {
     };
 
     try {
+      console.log('Making API request to:', url);
       const response = await fetch(url, defaultOptions);
+      console.log('API response status:', response.status);
+      
       const data = await response.json();
+      console.log('API response data:', data);
       
       if (!response.ok) {
         throw new Error(data.message || `HTTP error! status: ${response.status}`);
@@ -208,6 +212,8 @@ class ApiService {
       return data;
     } catch (error) {
       console.error('API request failed:', error);
+      console.error('Request URL:', url);
+      console.error('Request options:', defaultOptions);
       throw error;
     }
   }
