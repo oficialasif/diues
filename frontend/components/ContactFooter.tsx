@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Mail, Phone, MapPin, Send, Users } from 'lucide-react'
+import Image from 'next/image'
 
 const ContactFooter = () => {
   const [formData, setFormData] = useState({
@@ -277,8 +278,15 @@ const ContactFooter = () => {
               {/* Logo and Description */}
               <div className="text-center md:text-left">
                 <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
-                  <div className="w-12 h-12 bg-dark rounded-full flex items-center justify-center border-2 border-white">
-                    <div className="text-xl">🎮</div>
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                    <Image
+                      src="/logo.png"
+                      alt="DIU Esports Logo"
+                      width={48}
+                      height={48}
+                      className="object-contain rounded-full"
+                      priority
+                    />
                   </div>
                   <div>
                     <h3 className="text-xl font-audiowide text-white">DIU ESPORTS</h3>
@@ -304,7 +312,7 @@ const ContactFooter = () => {
                   </a>
                 </div>
                 <p className="text-white text-sm font-poppins opacity-90">
-                  © 2024 DIU Esports Community. All rights reserved.
+                  © 2025 DIU Esports Community. All rights reserved.
                 </p>
               </div>
             </div>
