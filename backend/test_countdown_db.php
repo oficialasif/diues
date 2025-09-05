@@ -62,7 +62,7 @@ try {
     // Test 4: Test SELECT operation
     echo "4. Testing SELECT operation:\n";
     try {
-        $settings = $database->querySingle("SELECT * FROM event_countdown_settings WHERE is_active = 1 ORDER BY id DESC LIMIT 1");
+        $settings = $database->querySingle("SELECT * FROM event_countdown_settings WHERE is_active = true ORDER BY id DESC LIMIT 1");
         if ($settings) {
             echo "   ✅ SELECT operation successful\n";
             echo "   Data: " . json_encode($settings) . "\n";
