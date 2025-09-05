@@ -30,10 +30,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $image_url = '';
         $has_new_image = false;
         
+        // Debug: Log file upload info
+        error_log("File upload debug - POST action: " . $post_action);
+        error_log("File upload debug - FILES array: " . print_r($_FILES, true));
+        
         if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
             $has_new_image = true;
+            error_log("File upload debug - File uploaded successfully");
+            
             $file_extension = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
             $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
+            
+            error_log("File upload debug - File extension: " . $file_extension);
             
             if (in_array($file_extension, $allowed_extensions)) {
                 // Upload to Cloudinary
@@ -46,15 +54,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $cloudinary = new CloudinaryServiceSimple();
                 }
                 
+                error_log("File upload debug - Attempting Cloudinary upload");
                 $uploadResult = $cloudinary->uploadFromFile($_FILES['image'], 'diu-esports/gallery');
+                error_log("File upload debug - Upload result: " . print_r($uploadResult, true));
                 
                 if ($uploadResult['success']) {
                     $image_url = $uploadResult['public_id']; // Store public_id instead of local path
+                    error_log("File upload debug - Upload successful, image_url: " . $image_url);
                 } else {
                     $error = 'Failed to upload image: ' . $uploadResult['error'];
+                    error_log("File upload debug - Upload failed: " . $error);
                 }
             } else {
                 $error = 'Invalid file type. Please upload JPG, PNG, or GIF images.';
+                error_log("File upload debug - Invalid file type: " . $file_extension);
             }
         } elseif ($post_action === 'edit') {
             // For edit, keep existing image if no new image uploaded
@@ -63,17 +76,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($existing) {
                 $image_url = $existing['image_url'];
             }
+        } else {
+            error_log("File upload debug - No file uploaded or upload error: " . ($_FILES['image']['error'] ?? 'No file'));
         }
+        
+        // Debug: Log validation info
+        error_log("Validation debug - Title: '" . $title . "', Category: '" . $category . "', Image URL: '" . $image_url . "', Action: " . $post_action);
         
         // Validation: Check if we have required fields
         if (empty($title) || empty($category)) {
             $error = 'Title and Category are required fields.';
+            error_log("Validation debug - Missing title or category");
         } elseif ($post_action === 'add' && empty($image_url)) {
             $error = 'Image is required when adding a new gallery item.';
+            error_log("Validation debug - Adding new item but no image URL");
         } elseif ($post_action === 'edit' && empty($image_url)) {
             // For edit, if no new image uploaded, we should have kept the existing one
             // If we reach here, it means there was no existing image either
             $error = 'No image found. Please upload an image.';
+            error_log("Validation debug - Editing but no image URL");
         } else {
             try {
                 if ($post_action === 'add') {
