@@ -19,6 +19,11 @@ class GalleryHandler {
             $sql = "SELECT * FROM gallery ORDER BY year DESC, is_featured DESC, created_at DESC";
             $items = $this->db->queryAll($sql);
             
+            // Process image URLs
+            require_once 'images.php';
+            $imageHandler = new ImageHandler($this->db);
+            $items = $imageHandler->processImageUrls($items);
+            
             return [
                 'success' => true,
                 'data' => $items,
@@ -46,6 +51,11 @@ class GalleryHandler {
                     'message' => 'Gallery item not found'
                 ];
             }
+            
+            // Process image URLs
+            require_once 'images.php';
+            $imageHandler = new ImageHandler($this->db);
+            $item = $imageHandler->processImageUrls($item);
             
             return [
                 'success' => true,

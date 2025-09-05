@@ -19,6 +19,11 @@ class EventsHandler {
             $sql = "SELECT * FROM events ORDER BY event_date DESC";
             $events = $this->db->queryAll($sql);
             
+            // Process image URLs
+            require_once 'images.php';
+            $imageHandler = new ImageHandler($this->db);
+            $events = $imageHandler->processImageUrls($events);
+            
             return [
                 'success' => true,
                 'data' => $events,

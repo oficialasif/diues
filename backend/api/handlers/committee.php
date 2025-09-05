@@ -19,6 +19,11 @@ class CommitteeHandler {
             $sql = "SELECT * FROM committee_members ORDER BY year DESC, is_current DESC, name ASC";
             $members = $this->db->queryAll($sql);
             
+            // Process image URLs
+            require_once 'images.php';
+            $imageHandler = new ImageHandler($this->db);
+            $members = $imageHandler->processImageUrls($members);
+            
             return [
                 'success' => true,
                 'data' => $members,

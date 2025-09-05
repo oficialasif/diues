@@ -19,6 +19,11 @@ class SponsorsHandler {
             $sql = "SELECT * FROM sponsors ORDER BY partnership_type ASC, name ASC";
             $sponsors = $this->db->queryAll($sql);
             
+            // Process image URLs
+            require_once 'images.php';
+            $imageHandler = new ImageHandler($this->db);
+            $sponsors = $imageHandler->processImageUrls($sponsors);
+            
             return [
                 'success' => true,
                 'data' => $sponsors,

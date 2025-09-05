@@ -22,6 +22,11 @@ class TournamentsHandler {
                     ORDER BY t.start_date DESC";
             $tournaments = $this->db->queryAll($sql);
             
+            // Process image URLs
+            require_once 'images.php';
+            $imageHandler = new ImageHandler($this->db);
+            $tournaments = $imageHandler->processImageUrls($tournaments);
+            
             return [
                 'success' => true,
                 'data' => $tournaments,
@@ -52,6 +57,11 @@ class TournamentsHandler {
                     'message' => 'Tournament not found'
                 ];
             }
+            
+            // Process image URLs
+            require_once 'images.php';
+            $imageHandler = new ImageHandler($this->db);
+            $tournament = $imageHandler->processImageUrls($tournament);
             
             return [
                 'success' => true,
