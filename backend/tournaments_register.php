@@ -85,18 +85,18 @@ try {
         
         // Insert registration
         $stmt = $pdo->prepare("
-            INSERT INTO registrations (
-                tournament_id, player_name, player_email, player_phone, 
-                player_ign, team_name, team_members, additional_info, 
-                status, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())
+            INSERT INTO tournament_registrations (
+                tournament_id, team_name, team_type, captain_name, captain_email, 
+                captain_phone, captain_discord, captain_student_id, captain_department, 
+                captain_semester, status, registration_date, notes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW(), ?)
         ");
         
         $team_members_json = json_encode($team_members);
         
         $stmt->execute([
-            $tournament_id, $player_name, $player_email, $player_phone,
-            $player_ign, $team_name, $team_members_json, $additional_info
+            $tournament_id, $team_name, 'solo', $player_name, $player_email,
+            $player_phone, '', '', '', '', $additional_info
         ]);
         
         $registration_id = $pdo->lastInsertId();
@@ -118,9 +118,9 @@ try {
         // Handle GET request - return registrations
         $stmt = $pdo->query("
             SELECT r.*, t.name as tournament_name 
-            FROM registrations r 
+            FROM tournament_registrations r 
             JOIN tournaments t ON r.tournament_id = t.id 
-            ORDER BY r.created_at DESC
+            ORDER BY r.registration_date DESC
         ");
         $registrations = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
