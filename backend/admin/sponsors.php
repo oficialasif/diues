@@ -24,9 +24,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $benefits = trim($_POST['benefits'] ?? '');
         $is_active = isset($_POST['is_active']) ? true : false;
         
-        // Handle logo upload
+        // Handle logo upload - support multiple methods
         $logo_url = '';
-        if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+        
+        // Method 1: Cloudinary URL (from widget)
+        if (!empty($_POST['cloudinary_url'])) {
+            $logo_url = $_POST['cloudinary_url'];
+        }
+        // Method 2: Direct logo URL input
+        elseif (!empty($_POST['logo_url'])) {
+            $logo_url = $_POST['logo_url'];
+        }
+        // Method 3: Traditional file upload (fallback)
+        elseif (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
             $upload_dir = '../uploads/logos/';
             if (!is_dir($upload_dir)) {
                 mkdir($upload_dir, 0755, true);
@@ -115,6 +125,8 @@ $partnership_types = ['platinum', 'gold', 'silver', 'bronze'];
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;500;600;700&display=swap">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Cloudinary Widget -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
     <style>
         .font-orbitron { font-family: 'Orbitron', sans-serif; }
         .font-poppins { font-family: 'Poppins', sans-serif; }
@@ -383,10 +395,41 @@ $partnership_types = ['platinum', 'gold', 'silver', 'bronze'];
                     </div>
                     
                     <div>
-                        <label for="logo" class="block text-sm font-medium text-gray-300 mb-2">Sponsor Logo</label>
-                        <input type="file" id="logo" name="logo" accept="image/*"
-                               class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500">
-                        <p class="text-sm text-gray-400 mt-1">Recommended: 300x200 pixels, JPG/PNG/GIF/SVG</p>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Sponsor Logo</label>
+                        
+                        <!-- Image Upload Options -->
+                        <div class="space-y-4">
+                            <!-- Option 1: Cloudinary Widget -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Upload via Cloudinary</label>
+                                <button type="button" id="cloudinary-upload-btn" 
+                                        class="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105">
+                                    <i class="fas fa-cloud-upload-alt mr-2"></i>Upload Logo to Cloudinary
+                                </button>
+                                <p class="text-sm text-gray-400 mt-1">Direct upload to Cloudinary (Recommended)</p>
+                            </div>
+                            
+                            <!-- Option 2: Image URL Input -->
+                            <div>
+                                <label for="logo_url" class="block text-sm font-medium text-gray-300 mb-2">Or Enter Logo URL</label>
+                                <input type="url" id="logo_url" name="logo_url" 
+                                       value="<?php echo htmlspecialchars($edit_sponsor['logo_url'] ?? ''); ?>"
+                                       placeholder="https://res.cloudinary.com/your-cloud/image/upload/..."
+                                       class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500">
+                                <p class="text-sm text-gray-400 mt-1">Paste any image URL (Cloudinary, external, etc.)</p>
+                            </div>
+                            
+                            <!-- Option 3: Traditional File Upload (Optional) -->
+                            <div>
+                                <label for="logo" class="block text-sm font-medium text-gray-300 mb-2">Or Upload File (Optional)</label>
+                                <input type="file" id="logo" name="logo" accept="image/*"
+                                       class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500">
+                                <p class="text-sm text-gray-400 mt-1">Traditional file upload (fallback option)</p>
+                            </div>
+                            
+                            <!-- Hidden field for Cloudinary URL -->
+                            <input type="hidden" id="cloudinary_url" name="cloudinary_url" value="">
+                        </div>
                     </div>
                     
                     <div class="flex space-x-4">
@@ -414,6 +457,88 @@ $partnership_types = ['platinum', 'gold', 'silver', 'bronze'];
         document.getElementById('mobileMenuBtn').addEventListener('click', function() {
             const sidebar = document.querySelector('.sidebar');
             sidebar.classList.toggle('hidden');
+        });
+
+        // Cloudinary Upload Widget
+        document.getElementById('cloudinary-upload-btn').addEventListener('click', function() {
+            cloudinary.openUploadWidget({
+                cloudName: 'dn7ucxk8a',
+                uploadPreset: 'diu-esports-sponsors',
+                sources: ['local', 'url', 'camera'],
+                multiple: false,
+                cropping: true,
+                croppingAspectRatio: 1.5, // 3:2 ratio for sponsor logos
+                croppingShowDimensions: true,
+                folder: 'diu-esports/sponsors',
+                resourceType: 'image',
+                maxFileSize: 10000000, // 10MB
+                clientAllowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'],
+                theme: 'dark',
+                text: {
+                    en: {
+                        upload: 'Upload',
+                        loading: 'Loading...',
+                        processing: 'Processing...',
+                        retry: 'Retry',
+                        error: 'Error',
+                        done: 'Done',
+                        cancel: 'Cancel',
+                        close: 'Close',
+                        add_more: 'Add more',
+                        remove: 'Remove',
+                        or: 'or',
+                        back: 'Back',
+                        next: 'Next',
+                        finish: 'Finish',
+                        select: 'Select',
+                        drag_drop: 'Drag and drop your images here',
+                        browse: 'Browse',
+                        upload_more: 'Upload more',
+                        done_uploading: 'Done uploading',
+                        powered_by: 'Powered by Cloudinary'
+                    }
+                }
+            }, function(error, result) {
+                if (!error && result && result.event === "success") {
+                    console.log('Cloudinary upload successful:', result.info);
+                    
+                    // Set the Cloudinary URL in the hidden field
+                    document.getElementById('cloudinary_url').value = result.info.public_id;
+                    
+                    // Also set the logo URL field
+                    document.getElementById('logo_url').value = result.info.secure_url;
+                    
+                    // Show success message
+                    const btn = document.getElementById('cloudinary-upload-btn');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check mr-2"></i>Upload Successful!';
+                    btn.classList.remove('from-blue-600', 'to-purple-600');
+                    btn.classList.add('from-green-600', 'to-green-700');
+                    
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.classList.remove('from-green-600', 'to-green-700');
+                        btn.classList.add('from-blue-600', 'to-purple-600');
+                    }, 3000);
+                } else if (error) {
+                    console.error('Cloudinary upload error:', error);
+                    alert('Upload failed: ' + error.message);
+                }
+            });
+        });
+
+        // Form validation - ensure at least one image method is used
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const cloudinaryUrl = document.getElementById('cloudinary_url').value;
+            const logoUrl = document.getElementById('logo_url').value;
+            const fileInput = document.getElementById('logo');
+            
+            if (!cloudinaryUrl && !logoUrl && !fileInput.files.length) {
+                e.preventDefault();
+                alert('Please upload a logo using one of the methods above.');
+                return false;
+            }
         });
     </script>
 </body>
