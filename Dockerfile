@@ -24,6 +24,9 @@ RUN mkdir -p backend/uploads/{highlights,icons,logos,photos,posters} \
     && chmod -R 755 backend/logs \
     && chown -R www-data:www-data /var/www/html
 
+# Create symlink for uploads to be accessible at root level
+RUN ln -sf /var/www/html/backend/uploads /var/www/html/uploads
+
 # Debug: Check file structure and permissions
 RUN ls -la /var/www/html/ && \
     ls -la /var/www/html/backend/ && \

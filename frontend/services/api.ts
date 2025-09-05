@@ -237,7 +237,7 @@ class ApiService {
   // Tournament Registrations
   async registerForTournament(registration: TournamentRegistrationForm): Promise<TournamentRegistration> {
     console.log('API Service: Sending registration request:', registration);
-    const response = await this.request<TournamentRegistration>('tournaments/register', {
+    const response = await this.request<TournamentRegistration>('tournaments_register.php', {
       method: 'POST',
       body: JSON.stringify(registration)
     });
