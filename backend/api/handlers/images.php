@@ -27,7 +27,13 @@ class ImageHandler {
             return $relativePath;
         }
         
-        // Convert relative path to full URL
+        // Check if it's a Cloudinary URL (starts with diu-esports/)
+        if (strpos($relativePath, 'diu-esports/') === 0) {
+            // It's a Cloudinary public_id, return the full URL
+            return 'https://res.cloudinary.com/dn7ucxk8a/image/upload/' . $relativePath;
+        }
+        
+        // Legacy local file - convert to backend URL
         $relativePath = ltrim($relativePath, '/');
         return $this->baseUrl . '/api/images/' . $relativePath;
     }

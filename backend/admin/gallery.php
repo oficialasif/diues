@@ -29,21 +29,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Handle image upload
         $image_url = '';
         if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-            $upload_dir = '../uploads/photos/';
-            if (!is_dir($upload_dir)) {
-                mkdir($upload_dir, 0755, true);
-            }
-            
             $file_extension = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
             $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
             
             if (in_array($file_extension, $allowed_extensions)) {
-                $filename = uniqid() . '.' . $file_extension;
-                $upload_path = $upload_dir . $filename;
+                // Upload to Cloudinary
+                require_once '../services/CloudinaryService.php';
+                $cloudinary = new CloudinaryService();
                 
-                if (move_uploaded_file($_FILES['image']['tmp_name'], $upload_path)) {
-                    $image_url = 'uploads/photos/' . $filename;
+                $uploadResult = $cloudinary->uploadFromFile($_FILES['image'], 'diu-esports/gallery');
+                
+                if ($uploadResult['success']) {
+                    $image_url = $uploadResult['public_id']; // Store public_id instead of local path
+                } else {
+                    $error = 'Failed to upload image: ' . $uploadResult['error'];
                 }
+            } else {
+                $error = 'Invalid file type. Please upload JPG, PNG, or GIF images.';
             }
         }
         
