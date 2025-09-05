@@ -65,11 +65,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
-        // Validation: For new items, image is required. For edits, image is required only if no existing image
-        $image_required = ($post_action === 'add') || ($post_action === 'edit' && empty($image_url));
-        
-        if (empty($title) || empty($category) || ($image_required && empty($image_url))) {
-            $error = 'Title, Category, and Image are required fields.';
+        // Validation: Check if we have required fields
+        if (empty($title) || empty($category)) {
+            $error = 'Title and Category are required fields.';
+        } elseif ($post_action === 'add' && empty($image_url)) {
+            $error = 'Image is required when adding a new gallery item.';
+        } elseif ($post_action === 'edit' && empty($image_url)) {
+            // For edit, if no new image uploaded, we should have kept the existing one
+            // If we reach here, it means there was no existing image either
+            $error = 'No image found. Please upload an image.';
         } else {
             try {
                 if ($post_action === 'add') {
