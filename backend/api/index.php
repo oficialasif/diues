@@ -46,10 +46,14 @@ if ($isProduction) {
     require_once __DIR__ . '/../config/database.php';
 }
 
-require_once __DIR__ . '/../config/auth.php';
-
-$database = new Database();
-$auth = new Auth($database);
+// Load auth only if it exists (for local development)
+if (file_exists(__DIR__ . '/../config/auth.php')) {
+    require_once __DIR__ . '/../config/auth.php';
+    $auth = new Auth($database);
+} else {
+    // For production, create a simple auth stub
+    $auth = null;
+}
 
 // Get request method and path
 $method = $_SERVER['REQUEST_METHOD'];
