@@ -36,7 +36,7 @@ try {
     // Test 2: Test UPDATE operation
     echo "2. Testing UPDATE operation:\n";
     try {
-        $result = $database->execute("UPDATE event_countdown_settings SET is_active = 0");
+        $result = $database->execute("UPDATE event_countdown_settings SET is_active = false");
         echo "   ✅ UPDATE operation successful\n";
     } catch (Exception $e) {
         echo "   ❌ UPDATE operation failed: " . $e->getMessage() . "\n";
