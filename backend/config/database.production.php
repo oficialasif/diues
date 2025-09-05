@@ -101,11 +101,22 @@ class Database {
         try {
             $conn = $this->getConnection();
             $stmt = $conn->prepare($sql);
-            $result = $stmt->execute($params);
+            
+            // Convert boolean values to PostgreSQL format
+            $processedParams = [];
+            foreach ($params as $param) {
+                if (is_bool($param)) {
+                    $processedParams[] = $param ? 'true' : 'false';
+                } else {
+                    $processedParams[] = $param;
+                }
+            }
+            
+            $result = $stmt->execute($processedParams);
             return $result ? $conn->lastInsertId() : false;
         } catch(PDOException $e) {
-            error_log("Execute failed: " . $e->getMessage());
-            throw new Exception("Database operation failed");
+            error_log("Execute failed: " . $e->getMessage() . " SQL: " . $sql);
+            throw new Exception("Database operation failed: " . $e->getMessage());
         }
     }
     

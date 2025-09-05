@@ -17,16 +17,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $status_text = $_POST['status_text'] ?? '';
         $custom_message = $_POST['custom_message'] ?? '';
         $target_date = $_POST['target_date'] ?? '';
-        $show_countdown = isset($_POST['show_countdown']) ? 1 : 0;
+        $show_countdown = isset($_POST['show_countdown']);
         $countdown_type = $_POST['countdown_type'] ?? 'days';
         
         if (empty($status_text) || empty($target_date)) {
             $error = 'Status text and target date are required';
         } else {
             try {
-                $database->execute("UPDATE event_countdown_settings SET is_active = 0");
+                $database->execute("UPDATE event_countdown_settings SET is_active = false");
                 
-                $sql = "INSERT INTO event_countdown_settings (status_text, custom_message, target_date, is_active, show_countdown, countdown_type) VALUES (?, ?, ?, 1, ?, ?)";
+                $sql = "INSERT INTO event_countdown_settings (status_text, custom_message, target_date, is_active, show_countdown, countdown_type) VALUES (?, ?, ?, true, ?, ?)";
                 $database->execute($sql, [$status_text, $custom_message, $target_date, $show_countdown, $countdown_type]);
                 $message = 'Countdown settings updated successfully!';
             } catch (Exception $e) {
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $currentSettings = null;
 try {
-    $currentSettings = $database->querySingle("SELECT * FROM event_countdown_settings WHERE is_active = 1 ORDER BY id DESC LIMIT 1");
+    $currentSettings = $database->querySingle("SELECT * FROM event_countdown_settings WHERE is_active = true ORDER BY id DESC LIMIT 1");
 } catch (Exception $e) {
     // Ignore error, will use defaults
 }
