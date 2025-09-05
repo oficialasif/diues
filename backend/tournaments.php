@@ -35,10 +35,15 @@ try {
     $database = new Database();
     $pdo = $database->getConnection();
     
-    $stmt = $pdo->query("SELECT t.*, g.name as game_name, g.genre 
-                        FROM tournaments t 
-                        LEFT JOIN games g ON t.game_id = g.id 
-                        ORDER BY t.created_at DESC");
+    $stmt = $pdo->query("
+        SELECT t.*, g.name as game_name, g.genre,
+               COALESCE(COUNT(tr.id), 0) as current_participants
+        FROM tournaments t 
+        LEFT JOIN games g ON t.game_id = g.id 
+        LEFT JOIN tournament_registrations tr ON t.id = tr.tournament_id
+        GROUP BY t.id, g.name, g.genre
+        ORDER BY t.created_at DESC
+    ");
     $tournaments = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     $result = [
