@@ -1,9 +1,14 @@
 FROM php:8.2-apache
 
-# Install system dependencies for PostgreSQL
+# Install system dependencies for PostgreSQL and Composer
 RUN apt-get update && apt-get install -y \
     libpq-dev \
+    git \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Install PHP extensions for PostgreSQL
 RUN docker-php-ext-install pdo pdo_pgsql pgsql
@@ -16,6 +21,9 @@ WORKDIR /var/www/html
 
 # Copy project files
 COPY . .
+
+# Install Composer dependencies
+RUN cd backend && composer install --no-dev --optimize-autoloader
 
 # Create necessary directories and set permissions
 RUN mkdir -p backend/uploads/{highlights,icons,logos,photos,posters} \

@@ -27,13 +27,21 @@ services:
       - key: DB_PORT
         value: 5432
       - key: STORAGE_TYPE
-        value: local
+        value: cloudinary
       - key: UPLOAD_PATH
         value: uploads/
       - key: ALLOWED_FILE_TYPES
         value: image/jpeg,image/png,image/gif,image/webp
       - key: MAX_FILE_SIZE
         value: 5242880
+      - key: CLOUDINARY_CLOUD_NAME
+        value: dn7ucxk8a
+      - key: CLOUDINARY_API_KEY
+        value: oNE1GqwM-WYb_REcNFr39eqwCY0
+      - key: CLOUDINARY_API_SECRET
+        value: 246184425446679
+      - key: CLOUDINARY_SECURE
+        value: true
       - key: CORS_ALLOWED_ORIGINS
         value: https://diues.vercel.app,http://localhost:3000
       - key: SESSION_SECURE

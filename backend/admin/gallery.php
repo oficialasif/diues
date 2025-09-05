@@ -34,8 +34,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if (in_array($file_extension, $allowed_extensions)) {
                 // Upload to Cloudinary
-                require_once '../services/CloudinaryService.php';
-                $cloudinary = new CloudinaryService();
+                if (file_exists('../services/CloudinaryService.php')) {
+                    require_once '../services/CloudinaryService.php';
+                    $cloudinary = new CloudinaryService();
+                } else {
+                    // Fallback to simple version
+                    require_once '../services/CloudinaryServiceSimple.php';
+                    $cloudinary = new CloudinaryServiceSimple();
+                }
                 
                 $uploadResult = $cloudinary->uploadFromFile($_FILES['image'], 'diu-esports/gallery');
                 
