@@ -44,26 +44,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             error_log("File upload debug - File extension: " . $file_extension);
             
             if (in_array($file_extension, $allowed_extensions)) {
-                // Upload to Cloudinary
-                if (file_exists('../services/CloudinaryService.php')) {
-                    require_once '../services/CloudinaryService.php';
-                    $cloudinary = new CloudinaryService();
-                } else {
-                    // Fallback to simple version
-                    require_once '../services/CloudinaryServiceSimple.php';
-                    $cloudinary = new CloudinaryServiceSimple();
+                // First, save file locally as backup
+                $upload_dir = '../uploads/gallery/';
+                if (!is_dir($upload_dir)) {
+                    mkdir($upload_dir, 0755, true);
                 }
                 
-                error_log("File upload debug - Attempting Cloudinary upload");
-                $uploadResult = $cloudinary->uploadFromFile($_FILES['image'], 'diu-esports/gallery');
-                error_log("File upload debug - Upload result: " . print_r($uploadResult, true));
+                $filename = uniqid() . '.' . $file_extension;
+                $local_path = $upload_dir . $filename;
                 
-                if ($uploadResult['success']) {
-                    $image_url = $uploadResult['public_id']; // Store public_id instead of local path
-                    error_log("File upload debug - Upload successful, image_url: " . $image_url);
+                if (move_uploaded_file($_FILES['image']['tmp_name'], $local_path)) {
+                    error_log("File upload debug - File saved locally: " . $local_path);
+                    
+                    // Try Cloudinary upload
+                    try {
+                        if (file_exists('../services/CloudinaryService.php')) {
+                            require_once '../services/CloudinaryService.php';
+                            $cloudinary = new CloudinaryService();
+                        } else {
+                            require_once '../services/CloudinaryServiceSimple.php';
+                            $cloudinary = new CloudinaryServiceSimple();
+                        }
+                        
+                        error_log("File upload debug - Attempting Cloudinary upload");
+                        $uploadResult = $cloudinary->uploadFromFile($_FILES['image'], 'diu-esports/gallery');
+                        error_log("File upload debug - Upload result: " . print_r($uploadResult, true));
+                        
+                        if ($uploadResult['success']) {
+                            $image_url = $uploadResult['public_id']; // Store public_id
+                            error_log("File upload debug - Cloudinary upload successful, image_url: " . $image_url);
+                            // Clean up local file since Cloudinary worked
+                            unlink($local_path);
+                        } else {
+                            // Fallback to local file
+                            $image_url = 'uploads/gallery/' . $filename;
+                            error_log("File upload debug - Cloudinary failed, using local file: " . $image_url);
+                        }
+                    } catch (Exception $e) {
+                        // Fallback to local file
+                        $image_url = 'uploads/gallery/' . $filename;
+                        error_log("File upload debug - Cloudinary exception, using local file: " . $image_url . " Error: " . $e->getMessage());
+                    }
                 } else {
-                    $error = 'Failed to upload image: ' . $uploadResult['error'];
-                    error_log("File upload debug - Upload failed: " . $error);
+                    $error = 'Failed to save uploaded file.';
+                    error_log("File upload debug - Failed to save file locally");
                 }
             } else {
                 $error = 'Invalid file type. Please upload JPG, PNG, or GIF images.';
