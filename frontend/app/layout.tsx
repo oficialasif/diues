@@ -40,6 +40,9 @@ export const metadata: Metadata = {
   title: 'DIU ESPORTS COMMUNITY - Professional Esports Portfolio',
   description: 'Official portfolio website for DIU Esports Community. Discover our tournaments, achievements, and gaming excellence.',
   keywords: 'DIU, Esports, Gaming, Tournaments, Community, Portfolio',
+  icons: {
+    icon: '/favicon.ico',
+  },
 }
 
 export default function RootLayout({
