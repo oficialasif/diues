@@ -14,27 +14,27 @@ class CloudinaryService {
     private $uploadApi;
     
     public function __construct() {
-        // Get environment variables (try multiple sources)
-        $cloudName = $_ENV['CLOUDINARY_CLOUD_NAME'] ?? getenv('CLOUDINARY_CLOUD_NAME') ?? 'dn7ucxk8a';
-        $apiKey = $_ENV['CLOUDINARY_API_KEY'] ?? getenv('CLOUDINARY_API_KEY') ?? 'oNE1GqwM-WYb_REcNFr39eqwCY0';
-        $apiSecret = $_ENV['CLOUDINARY_API_SECRET'] ?? getenv('CLOUDINARY_API_SECRET') ?? '246184425446679';
+        // Set environment variables directly for Cloudinary SDK
+        putenv('CLOUDINARY_CLOUD_NAME=dn7ucxk8a');
+        putenv('CLOUDINARY_API_KEY=oNE1GqwM-WYb_REcNFr39eqwCY0');
+        putenv('CLOUDINARY_API_SECRET=246184425446679');
         
-        // Force the correct values for now
-        $cloudName = 'dn7ucxk8a';
-        $apiKey = 'oNE1GqwM-WYb_REcNFr39eqwCY0';
-        $apiSecret = '246184425446679';
+        // Also set in $_ENV
+        $_ENV['CLOUDINARY_CLOUD_NAME'] = 'dn7ucxk8a';
+        $_ENV['CLOUDINARY_API_KEY'] = 'oNE1GqwM-WYb_REcNFr39eqwCY0';
+        $_ENV['CLOUDINARY_API_SECRET'] = '246184425446679';
         
         // Debug: Log the values being used
-        error_log("Cloudinary Config - Cloud Name: " . $cloudName);
-        error_log("Cloudinary Config - API Key: " . substr($apiKey, 0, 10) . "...");
-        error_log("Cloudinary Config - API Secret: " . substr($apiSecret, 0, 10) . "...");
+        error_log("Cloudinary Config - Cloud Name: dn7ucxk8a");
+        error_log("Cloudinary Config - API Key: oNE1GqwM...");
+        error_log("Cloudinary Config - API Secret: 246184425...");
         
-        // Configure Cloudinary
+        // Configure Cloudinary using environment variables
         Configuration::instance([
             'cloud' => [
-                'cloud_name' => $cloudName,
-                'api_key' => $apiKey,
-                'api_secret' => $apiSecret
+                'cloud_name' => 'dn7ucxk8a',
+                'api_key' => 'oNE1GqwM-WYb_REcNFr39eqwCY0',
+                'api_secret' => '246184425446679'
             ],
             'url' => [
                 'secure' => true
