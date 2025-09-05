@@ -46,6 +46,11 @@ try {
     ");
     $tournaments = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
+    // Process image URLs
+    require_once __DIR__ . '/api/handlers/images.php';
+    $imageHandler = new ImageHandler($database);
+    $tournaments = $imageHandler->processImageUrls($tournaments);
+    
     $result = [
         'success' => true,
         'data' => $tournaments,

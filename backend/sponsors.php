@@ -38,6 +38,11 @@ try {
     $stmt = $pdo->query("SELECT * FROM sponsors WHERE is_active = true ORDER BY created_at DESC");
     $sponsors = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
+    // Process image URLs
+    require_once __DIR__ . '/api/handlers/images.php';
+    $imageHandler = new ImageHandler($database);
+    $sponsors = $imageHandler->processImageUrls($sponsors);
+    
     $result = [
         'success' => true,
         'data' => $sponsors,

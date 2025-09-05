@@ -38,6 +38,11 @@ try {
     $stmt = $pdo->query("SELECT * FROM gallery ORDER BY created_at DESC");
     $gallery = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
+    // Process image URLs
+    require_once __DIR__ . '/api/handlers/images.php';
+    $imageHandler = new ImageHandler($database);
+    $gallery = $imageHandler->processImageUrls($gallery);
+    
     $result = [
         'success' => true,
         'data' => $gallery,

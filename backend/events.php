@@ -38,6 +38,11 @@ try {
     $stmt = $pdo->query("SELECT * FROM events ORDER BY created_at DESC");
     $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
+    // Process image URLs
+    require_once __DIR__ . '/api/handlers/images.php';
+    $imageHandler = new ImageHandler($database);
+    $events = $imageHandler->processImageUrls($events);
+    
     $result = [
         'success' => true,
         'data' => $events,

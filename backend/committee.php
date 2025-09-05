@@ -38,6 +38,11 @@ try {
     $stmt = $pdo->query("SELECT * FROM committee_members ORDER BY created_at DESC");
     $committee = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
+    // Process image URLs
+    require_once __DIR__ . '/api/handlers/images.php';
+    $imageHandler = new ImageHandler($database);
+    $committee = $imageHandler->processImageUrls($committee);
+    
     $result = [
         'success' => true,
         'data' => $committee,
