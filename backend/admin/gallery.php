@@ -28,7 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Handle image upload
         $image_url = '';
+        $has_new_image = false;
+        
         if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+            $has_new_image = true;
             $file_extension = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
             $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
             
@@ -53,9 +56,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $error = 'Invalid file type. Please upload JPG, PNG, or GIF images.';
             }
+        } elseif ($post_action === 'edit') {
+            // For edit, keep existing image if no new image uploaded
+            $id = intval($_POST['id']);
+            $existing = $database->query("SELECT image_url FROM gallery WHERE id = ?", [$id])->fetch();
+            if ($existing) {
+                $image_url = $existing['image_url'];
+            }
         }
         
-        if (empty($title) || empty($category) || empty($image_url)) {
+        // Validation: For new items, image is required. For edits, image is required only if no existing image
+        $image_required = ($post_action === 'add') || ($post_action === 'edit' && empty($image_url));
+        
+        if (empty($title) || empty($category) || ($image_required && empty($image_url))) {
             $error = 'Title, Category, and Image are required fields.';
         } else {
             try {
