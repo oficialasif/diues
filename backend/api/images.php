@@ -19,11 +19,27 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 // Get image path from URL
 $requestUri = $_SERVER['REQUEST_URI'];
 $pathInfo = parse_url($requestUri, PHP_URL_PATH);
-$imagePath = str_replace('/api/images/', '', $pathInfo);
+
+// Handle different URL patterns
+if (strpos($pathInfo, '/api/images/') !== false) {
+    $imagePath = str_replace('/api/images/', '', $pathInfo);
+} elseif (isset($_GET['path'])) {
+    $imagePath = $_GET['path'];
+} else {
+    // Try to extract from PATH_INFO
+    $imagePath = ltrim($pathInfo, '/api/images/');
+}
+
+// Clean up the path
+$imagePath = ltrim($imagePath, '/');
 
 if (empty($imagePath)) {
     http_response_code(400);
-    echo json_encode(['error' => 'Image path required']);
+    echo json_encode(['error' => 'Image path required', 'debug' => [
+        'request_uri' => $requestUri,
+        'path_info' => $pathInfo,
+        'image_path' => $imagePath
+    ]]);
     exit;
 }
 

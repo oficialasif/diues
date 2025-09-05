@@ -40,8 +40,11 @@ class ImageHandler {
             $allowedDirs = ['uploads/photos/', 'uploads/logos/', 'uploads/posters/', 'uploads/icons/'];
             $isAllowed = false;
             
+            // Normalize the path
+            $normalizedPath = ltrim($imagePath, '/');
+            
             foreach ($allowedDirs as $dir) {
-                if (strpos($imagePath, $dir) === 0) {
+                if (strpos($normalizedPath, $dir) === 0) {
                     $isAllowed = true;
                     break;
                 }
@@ -49,7 +52,11 @@ class ImageHandler {
             
             if (!$isAllowed) {
                 http_response_code(403);
-                echo json_encode(['error' => 'Access denied']);
+                echo json_encode(['error' => 'Access denied', 'debug' => [
+                    'image_path' => $imagePath,
+                    'normalized_path' => $normalizedPath,
+                    'allowed_dirs' => $allowedDirs
+                ]]);
                 return;
             }
             
