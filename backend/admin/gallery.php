@@ -26,15 +26,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Convert tags string to JSON array for PostgreSQL JSONB field
         $tags = $tags_input ? json_encode(explode(',', $tags_input)) : null;
         
-        // Handle image upload
+        // Handle image upload - support multiple methods
         $image_url = '';
         $has_new_image = false;
         
         // Debug: Log file upload info
         error_log("File upload debug - POST action: " . $post_action);
         error_log("File upload debug - FILES array: " . print_r($_FILES, true));
+        error_log("File upload debug - POST data: " . print_r($_POST, true));
         
-        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        // Method 1: Cloudinary URL (from widget)
+        if (!empty($_POST['cloudinary_url'])) {
+            $image_url = $_POST['cloudinary_url'];
+            error_log("File upload debug - Using Cloudinary URL: " . $image_url);
+        }
+        // Method 2: Direct image URL input
+        elseif (!empty($_POST['image_url'])) {
+            $image_url = $_POST['image_url'];
+            error_log("File upload debug - Using direct URL: " . $image_url);
+        }
+        // Method 3: Traditional file upload (fallback)
+        elseif (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
             $has_new_image = true;
             error_log("File upload debug - File uploaded successfully");
             
@@ -111,14 +123,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($title) || empty($category)) {
             $error = 'Title and Category are required fields.';
             error_log("Validation debug - Missing title or category");
-        } elseif ($post_action === 'add' && empty($image_url)) {
-            $error = 'Image is required when adding a new gallery item.';
-            error_log("Validation debug - Adding new item but no image URL");
-        } elseif ($post_action === 'edit' && empty($image_url)) {
-            // For edit, if no new image uploaded, we should have kept the existing one
-            // If we reach here, it means there was no existing image either
-            $error = 'No image found. Please upload an image.';
-            error_log("Validation debug - Editing but no image URL");
+        } elseif (empty($image_url)) {
+            $error = 'Image is required. Please upload an image using one of the methods above.';
+            error_log("Validation debug - No image provided");
         } else {
             try {
                 if ($post_action === 'add') {
@@ -187,6 +194,8 @@ $categories = ['tournament', 'event', 'achievement', 'community'];
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;500;600;700&display=swap">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Cloudinary Widget -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
     <style>
         .font-orbitron { font-family: 'Orbitron', sans-serif; }
         .font-poppins { font-family: 'Poppins', sans-serif; }
@@ -435,10 +444,41 @@ $categories = ['tournament', 'event', 'achievement', 'community'];
                     </div>
                     
                     <div>
-                        <label for="image" class="block text-sm font-medium text-gray-300 mb-2">Image *</label>
-                        <input type="file" id="image" name="image" accept="image/*" required
-                               class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500">
-                        <p class="text-sm text-gray-400 mt-1">Recommended: 1200x800 pixels, JPG/PNG/GIF</p>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Image *</label>
+                        
+                        <!-- Image Upload Options -->
+                        <div class="space-y-4">
+                            <!-- Option 1: Cloudinary Widget -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Upload via Cloudinary</label>
+                                <button type="button" id="cloudinary-upload-btn" 
+                                        class="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105">
+                                    <i class="fas fa-cloud-upload-alt mr-2"></i>Upload Image to Cloudinary
+                                </button>
+                                <p class="text-sm text-gray-400 mt-1">Direct upload to Cloudinary (Recommended)</p>
+                            </div>
+                            
+                            <!-- Option 2: Image URL Input -->
+                            <div>
+                                <label for="image_url" class="block text-sm font-medium text-gray-300 mb-2">Or Enter Image URL</label>
+                                <input type="url" id="image_url" name="image_url" 
+                                       value="<?php echo htmlspecialchars($edit_item['image_url'] ?? ''); ?>"
+                                       placeholder="https://res.cloudinary.com/your-cloud/image/upload/..."
+                                       class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500">
+                                <p class="text-sm text-gray-400 mt-1">Paste any image URL (Cloudinary, external, etc.)</p>
+                            </div>
+                            
+                            <!-- Option 3: Traditional File Upload (Optional) -->
+                            <div>
+                                <label for="image" class="block text-sm font-medium text-gray-300 mb-2">Or Upload File (Optional)</label>
+                                <input type="file" id="image" name="image" accept="image/*"
+                                       class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500">
+                                <p class="text-sm text-gray-400 mt-1">Traditional file upload (fallback option)</p>
+                            </div>
+                            
+                            <!-- Hidden field for Cloudinary URL -->
+                            <input type="hidden" id="cloudinary_url" name="cloudinary_url" value="">
+                        </div>
                     </div>
                     
                     <div class="flex space-x-4">
@@ -466,6 +506,88 @@ $categories = ['tournament', 'event', 'achievement', 'community'];
         document.getElementById('mobileMenuBtn').addEventListener('click', function() {
             const sidebar = document.querySelector('.sidebar');
             sidebar.classList.toggle('hidden');
+        });
+
+        // Cloudinary Upload Widget
+        document.getElementById('cloudinary-upload-btn').addEventListener('click', function() {
+            cloudinary.openUploadWidget({
+                cloudName: 'dn7ucxk8a',
+                uploadPreset: 'diu-esports-gallery',
+                sources: ['local', 'url', 'camera'],
+                multiple: false,
+                cropping: true,
+                croppingAspectRatio: 1.5,
+                croppingShowDimensions: true,
+                folder: 'diu-esports/gallery',
+                resourceType: 'image',
+                maxFileSize: 10000000, // 10MB
+                clientAllowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+                theme: 'dark',
+                text: {
+                    en: {
+                        upload: 'Upload',
+                        loading: 'Loading...',
+                        processing: 'Processing...',
+                        retry: 'Retry',
+                        error: 'Error',
+                        done: 'Done',
+                        cancel: 'Cancel',
+                        close: 'Close',
+                        add_more: 'Add more',
+                        remove: 'Remove',
+                        or: 'or',
+                        back: 'Back',
+                        next: 'Next',
+                        finish: 'Finish',
+                        select: 'Select',
+                        drag_drop: 'Drag and drop your images here',
+                        browse: 'Browse',
+                        upload_more: 'Upload more',
+                        done_uploading: 'Done uploading',
+                        powered_by: 'Powered by Cloudinary'
+                    }
+                }
+            }, function(error, result) {
+                if (!error && result && result.event === "success") {
+                    console.log('Cloudinary upload successful:', result.info);
+                    
+                    // Set the Cloudinary URL in the hidden field
+                    document.getElementById('cloudinary_url').value = result.info.public_id;
+                    
+                    // Also set the image URL field
+                    document.getElementById('image_url').value = result.info.secure_url;
+                    
+                    // Show success message
+                    const btn = document.getElementById('cloudinary-upload-btn');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check mr-2"></i>Upload Successful!';
+                    btn.classList.remove('from-blue-600', 'to-purple-600');
+                    btn.classList.add('from-green-600', 'to-green-700');
+                    
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.classList.remove('from-green-600', 'to-green-700');
+                        btn.classList.add('from-blue-600', 'to-purple-600');
+                    }, 3000);
+                } else if (error) {
+                    console.error('Cloudinary upload error:', error);
+                    alert('Upload failed: ' + error.message);
+                }
+            });
+        });
+
+        // Form validation - ensure at least one image method is used
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const cloudinaryUrl = document.getElementById('cloudinary_url').value;
+            const imageUrl = document.getElementById('image_url').value;
+            const fileInput = document.getElementById('image');
+            
+            if (!cloudinaryUrl && !imageUrl && !fileInput.files.length) {
+                e.preventDefault();
+                alert('Please upload an image using one of the methods above.');
+                return false;
+            }
         });
     </script>
 </body>
