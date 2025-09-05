@@ -10,9 +10,10 @@ class CloudinaryServiceSimple {
     private $apiSecret;
     
     public function __construct() {
-        $this->cloudName = $_ENV['CLOUDINARY_CLOUD_NAME'] ?? 'dn7ucxk8a';
-        $this->apiKey = $_ENV['CLOUDINARY_API_KEY'] ?? 'oNE1GqwM-WYb_REcNFr39eqwCY0';
-        $this->apiSecret = $_ENV['CLOUDINARY_API_SECRET'] ?? '246184425446679';
+        // Get environment variables (try both $_ENV and getenv)
+        $this->cloudName = $_ENV['CLOUDINARY_CLOUD_NAME'] ?? getenv('CLOUDINARY_CLOUD_NAME') ?? 'dn7ucxk8a';
+        $this->apiKey = $_ENV['CLOUDINARY_API_KEY'] ?? getenv('CLOUDINARY_API_KEY') ?? 'oNE1GqwM-WYb_REcNFr39eqwCY0';
+        $this->apiSecret = $_ENV['CLOUDINARY_API_SECRET'] ?? getenv('CLOUDINARY_API_SECRET') ?? '246184425446679';
     }
     
     /**
