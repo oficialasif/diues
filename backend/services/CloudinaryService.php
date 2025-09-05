@@ -14,10 +14,15 @@ class CloudinaryService {
     private $uploadApi;
     
     public function __construct() {
-        // Get environment variables (try both $_ENV and getenv)
+        // Get environment variables (try multiple sources)
         $cloudName = $_ENV['CLOUDINARY_CLOUD_NAME'] ?? getenv('CLOUDINARY_CLOUD_NAME') ?? 'dn7ucxk8a';
         $apiKey = $_ENV['CLOUDINARY_API_KEY'] ?? getenv('CLOUDINARY_API_KEY') ?? 'oNE1GqwM-WYb_REcNFr39eqwCY0';
         $apiSecret = $_ENV['CLOUDINARY_API_SECRET'] ?? getenv('CLOUDINARY_API_SECRET') ?? '246184425446679';
+        
+        // Debug: Log the values being used
+        error_log("Cloudinary Config - Cloud Name: " . $cloudName);
+        error_log("Cloudinary Config - API Key: " . substr($apiKey, 0, 10) . "...");
+        error_log("Cloudinary Config - API Secret: " . substr($apiSecret, 0, 10) . "...");
         
         // Configure Cloudinary
         Configuration::instance([
