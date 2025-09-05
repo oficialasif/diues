@@ -67,7 +67,7 @@ export default function HeroSection() {
           className="mb-8"
         >
           <img
-            src="/logo.png"
+            src="https://res.cloudinary.com/dn7ucxk8a/image/upload/v1757097048/file_00000000a118622fa2869ebff1ccc94e_fzyw89.png"
             alt="DIU Esports Logo"
             className="w-48 h-auto mx-auto drop-shadow-2xl"
           />
