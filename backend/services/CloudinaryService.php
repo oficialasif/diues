@@ -19,6 +19,11 @@ class CloudinaryService {
         $apiKey = $_ENV['CLOUDINARY_API_KEY'] ?? getenv('CLOUDINARY_API_KEY') ?? 'oNE1GqwM-WYb_REcNFr39eqwCY0';
         $apiSecret = $_ENV['CLOUDINARY_API_SECRET'] ?? getenv('CLOUDINARY_API_SECRET') ?? '246184425446679';
         
+        // Force the correct values for now
+        $cloudName = 'dn7ucxk8a';
+        $apiKey = 'oNE1GqwM-WYb_REcNFr39eqwCY0';
+        $apiSecret = '246184425446679';
+        
         // Debug: Log the values being used
         error_log("Cloudinary Config - Cloud Name: " . $cloudName);
         error_log("Cloudinary Config - API Key: " . substr($apiKey, 0, 10) . "...");
