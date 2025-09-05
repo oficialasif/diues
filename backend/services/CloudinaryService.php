@@ -18,11 +18,13 @@ class CloudinaryService {
         putenv('CLOUDINARY_CLOUD_NAME=dn7ucxk8a');
         putenv('CLOUDINARY_API_KEY=oNE1GqwM-WYb_REcNFr39eqwCY0');
         putenv('CLOUDINARY_API_SECRET=246184425446679');
+        putenv('CLOUDINARY_URL=cloudinary://oNE1GqwM-WYb_REcNFr39eqwCY0:246184425446679@dn7ucxk8a');
         
         // Also set in $_ENV
         $_ENV['CLOUDINARY_CLOUD_NAME'] = 'dn7ucxk8a';
         $_ENV['CLOUDINARY_API_KEY'] = 'oNE1GqwM-WYb_REcNFr39eqwCY0';
         $_ENV['CLOUDINARY_API_SECRET'] = '246184425446679';
+        $_ENV['CLOUDINARY_URL'] = 'cloudinary://oNE1GqwM-WYb_REcNFr39eqwCY0:246184425446679@dn7ucxk8a';
         
         // Debug: Log the values being used
         error_log("Cloudinary Config - Cloud Name: dn7ucxk8a");

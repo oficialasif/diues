@@ -27,19 +27,23 @@ try {
     // Test if Cloudinary SDK can be loaded
     if (file_exists(__DIR__ . '/vendor/autoload.php')) {
         
-        // Test configuration
-        Configuration::instance([
-            'cloud' => [
-                'cloud_name' => 'dn7ucxk8a',
-                'api_key' => 'oNE1GqwM-WYb_REcNFr39eqwCY0',
-                'api_secret' => '246184425446679'
-            ],
-            'url' => [
-                'secure' => true
-            ]
-        ]);
-        
-        $cloudinary = new Cloudinary();
+            // Test configuration - Set environment variables first
+    $_ENV['CLOUDINARY_URL'] = 'cloudinary://oNE1GqwM-WYb_REcNFr39eqwCY0:246184425446679@dn7ucxk8a';
+    putenv('CLOUDINARY_URL=cloudinary://oNE1GqwM-WYb_REcNFr39eqwCY0:246184425446679@dn7ucxk8a');
+    
+    // Test configuration
+    Configuration::instance([
+        'cloud' => [
+            'cloud_name' => 'dn7ucxk8a',
+            'api_key' => 'oNE1GqwM-WYb_REcNFr39eqwCY0',
+            'api_secret' => '246184425446679'
+        ],
+        'url' => [
+            'secure' => true
+        ]
+    ]);
+    
+    $cloudinary = new Cloudinary();
         
         echo json_encode([
             'success' => true,
