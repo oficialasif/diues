@@ -36,8 +36,8 @@ const ContactFooter = () => {
   ]
 
   const contactInfo = [
-    { icon: <Mail className="w-5 h-5" />, label: 'Email', value: 'esports@diu.edu.bd', color: 'neon-green' },
-    { icon: <Phone className="w-5 h-5" />, label: 'Phone', value: '+880 1234-567890', color: 'primary-blue' },
+    { icon: <Mail className="w-5 h-5" />, label: 'Email', value: 'diuesports@gmail.com', color: 'neon-green' },
+    { icon: <Phone className="w-5 h-5" />, label: 'Phone', value: '+8801737183436', color: 'primary-blue' },
     { icon: <MapPin className="w-5 h-5" />, label: 'Address', value: 'DIU Campus, Dhaka, Bangladesh', color: 'cyber-neon-purple' },
   ]
 
