@@ -70,11 +70,22 @@ class Database {
         try {
             $conn = $this->getConnection();
             $stmt = $conn->prepare($sql);
-            $stmt->execute($params);
+            
+            // Convert boolean values to PostgreSQL format
+            $processedParams = [];
+            foreach ($params as $param) {
+                if (is_bool($param)) {
+                    $processedParams[] = $param ? 'true' : 'false';
+                } else {
+                    $processedParams[] = $param;
+                }
+            }
+            
+            $stmt->execute($processedParams);
             return $stmt;
         } catch(PDOException $e) {
-            error_log("Query failed: " . $e->getMessage());
-            throw new Exception("Database query failed");
+            error_log("Query failed: " . $e->getMessage() . " SQL: " . $sql);
+            throw new Exception("Database query failed: " . $e->getMessage());
         }
     }
 
@@ -113,7 +124,13 @@ class Database {
             }
             
             $result = $stmt->execute($processedParams);
-            return $result ? $conn->lastInsertId() : false;
+            
+            // Only return lastInsertId for INSERT operations
+            if ($result && stripos(trim($sql), 'INSERT') === 0) {
+                return $conn->lastInsertId();
+            }
+            
+            return $result;
         } catch(PDOException $e) {
             error_log("Execute failed: " . $e->getMessage() . " SQL: " . $sql);
             throw new Exception("Database operation failed: " . $e->getMessage());
