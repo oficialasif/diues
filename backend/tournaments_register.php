@@ -55,11 +55,16 @@ try {
             throw new Exception('Invalid JSON data');
         }
         
+        // Debug: Log received data
+        error_log('Registration data received: ' . json_encode($input));
+        
         $tournament_id = intval($input['tournament_id'] ?? 0);
-        $player_name = trim($input['player_name'] ?? '');
-        $player_email = trim($input['player_email'] ?? '');
-        $player_phone = trim($input['player_phone'] ?? '');
-        $player_ign = trim($input['player_ign'] ?? '');
+        
+        // Handle both field name formats (frontend uses captain_*, backend expects player_*)
+        $player_name = trim($input['player_name'] ?? $input['captain_name'] ?? '');
+        $player_email = trim($input['player_email'] ?? $input['captain_email'] ?? '');
+        $player_phone = trim($input['player_phone'] ?? $input['captain_phone'] ?? '');
+        $player_ign = trim($input['player_ign'] ?? $input['captain_game_username'] ?? '');
         $team_name = trim($input['team_name'] ?? '');
         $team_members = $input['team_members'] ?? [];
         $additional_info = trim($input['additional_info'] ?? '');
