@@ -7,17 +7,105 @@ $auth->requireAdmin();
 
 $user = $auth->getCurrentUser();
 
+// Helper function to format time ago
+function timeAgo($datetime) {
+    $time = time() - strtotime($datetime);
+    if ($time < 60) return 'just now';
+    if ($time < 3600) return floor($time / 60) . ' minutes ago';
+    if ($time < 86400) return floor($time / 3600) . ' hours ago';
+    if ($time < 2592000) return floor($time / 86400) . ' days ago';
+    return date('M j, Y', strtotime($datetime));
+}
+
 // Get quick statistics
 try {
     $stats = [
-        'tournaments' => $database->querySingle("SELECT COUNT(*) as count FROM tournaments")['count'],
-        'events' => $database->querySingle("SELECT COUNT(*) as count FROM events")['count'],
-        'members' => $database->querySingle("SELECT COUNT(*) as count FROM committee_members WHERE is_current = 1")['count'],
-        'gallery' => $database->querySingle("SELECT COUNT(*) as count FROM gallery")['count'],
-        'sponsors' => $database->querySingle("SELECT COUNT(*) as count FROM sponsors WHERE is_active = 1")['count']
+        'tournaments' => $database->querySingle("SELECT COUNT(*) as count FROM tournaments")['count'] ?? 0,
+        'events' => $database->querySingle("SELECT COUNT(*) as count FROM events")['count'] ?? 0,
+        'members' => $database->querySingle("SELECT COUNT(*) as count FROM committee_members WHERE is_current = true")['count'] ?? 0,
+        'gallery' => $database->querySingle("SELECT COUNT(*) as count FROM gallery")['count'] ?? 0,
+        'sponsors' => $database->querySingle("SELECT COUNT(*) as count FROM sponsors WHERE is_active = true")['count'] ?? 0
     ];
 } catch (Exception $e) {
+    error_log("Dashboard stats error: " . $e->getMessage());
     $stats = ['tournaments' => 0, 'events' => 0, 'members' => 0, 'gallery' => 0, 'sponsors' => 0];
+}
+
+// Get recent activities
+try {
+    $recentActivities = [];
+    
+    // Get recent tournaments
+    $recentTournaments = $database->query("SELECT 'tournament' as type, title as description, created_at FROM tournaments ORDER BY created_at DESC LIMIT 3")->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($recentTournaments as $tournament) {
+        $recentActivities[] = [
+            'type' => 'tournament',
+            'description' => 'New tournament "' . $tournament['description'] . '" added',
+            'created_at' => $tournament['created_at'],
+            'color' => 'green'
+        ];
+    }
+    
+    // Get recent events
+    $recentEvents = $database->query("SELECT 'event' as type, title as description, created_at FROM events ORDER BY created_at DESC LIMIT 3")->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($recentEvents as $event) {
+        $recentActivities[] = [
+            'type' => 'event',
+            'description' => 'New event "' . $event['description'] . '" added',
+            'created_at' => $event['created_at'],
+            'color' => 'blue'
+        ];
+    }
+    
+    // Get recent committee members
+    $recentMembers = $database->query("SELECT 'member' as type, name as description, created_at FROM committee_members ORDER BY created_at DESC LIMIT 3")->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($recentMembers as $member) {
+        $recentActivities[] = [
+            'type' => 'member',
+            'description' => 'Committee member "' . $member['description'] . '" added',
+            'created_at' => $member['created_at'],
+            'color' => 'purple'
+        ];
+    }
+    
+    // Get recent gallery items
+    $recentGallery = $database->query("SELECT 'gallery' as type, title as description, created_at FROM gallery ORDER BY created_at DESC LIMIT 3")->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($recentGallery as $gallery) {
+        $recentActivities[] = [
+            'type' => 'gallery',
+            'description' => 'Gallery item "' . $gallery['description'] . '" added',
+            'created_at' => $gallery['created_at'],
+            'color' => 'yellow'
+        ];
+    }
+    
+    // Get recent sponsors
+    $recentSponsors = $database->query("SELECT 'sponsor' as type, name as description, created_at FROM sponsors ORDER BY created_at DESC LIMIT 3")->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($recentSponsors as $sponsor) {
+        $recentActivities[] = [
+            'type' => 'sponsor',
+            'description' => 'Sponsor "' . $sponsor['description'] . '" added',
+            'created_at' => $sponsor['created_at'],
+            'color' => 'red'
+        ];
+    }
+    
+    // Sort all activities by created_at and get the 5 most recent
+    usort($recentActivities, function($a, $b) {
+        return strtotime($b['created_at']) - strtotime($a['created_at']);
+    });
+    $recentActivities = array_slice($recentActivities, 0, 5);
+    
+} catch (Exception $e) {
+    error_log("Recent activities error: " . $e->getMessage());
+    $recentActivities = [
+        [
+            'type' => 'system',
+            'description' => 'System initialized',
+            'created_at' => date('Y-m-d H:i:s'),
+            'color' => 'green'
+        ]
+    ];
 }
 ?>
 
@@ -227,21 +315,22 @@ try {
             <div class="bg-gray-800 bg-opacity-50 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
                 <h3 class="text-xl font-semibold text-white mb-4">Recent Activity</h3>
                 <div class="space-y-3">
-                    <div class="flex items-center space-x-3 text-sm">
-                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span class="text-gray-300">New tournament "Valorant Championship" added</span>
-                        <span class="text-gray-500 text-xs">2 hours ago</span>
-                    </div>
-                    <div class="flex items-center space-x-3 text-sm">
-                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <span class="text-gray-300">Committee member profile updated</span>
-                        <span class="text-gray-500 text-xs">5 hours ago</span>
-                    </div>
-                    <div class="flex items-center space-x-3 text-sm">
-                        <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                        <span class="text-gray-300">New gallery images uploaded</span>
-                        <span class="text-gray-500 text-xs">1 day ago</span>
-                    </div>
+                    <?php if (empty($recentActivities)): ?>
+                        <div class="text-center text-gray-400 py-4">
+                            <i class="fas fa-info-circle mb-2 block text-2xl"></i>
+                            <p>No recent activities</p>
+                        </div>
+                    <?php else: ?>
+                        <?php foreach ($recentActivities as $activity): ?>
+                            <div class="flex items-center space-x-3 text-sm">
+                                <div class="w-2 h-2 bg-<?php echo $activity['color']; ?>-500 rounded-full"></div>
+                                <span class="text-gray-300"><?php echo htmlspecialchars($activity['description']); ?></span>
+                                <span class="text-gray-500 text-xs">
+                                    <?php echo timeAgo($activity['created_at']); ?>
+                                </span>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -275,6 +364,46 @@ try {
                 </div>
             </div>
         </div>
+        
+        <!-- Debug Information (only show if there are issues) -->
+        <?php if (isset($_GET['debug']) && $_GET['debug'] == '1'): ?>
+        <div class="bg-gray-800 bg-opacity-50 backdrop-blur-sm rounded-xl p-6 border border-gray-700 mt-8">
+            <h3 class="text-xl font-semibold text-white mb-4">Debug Information</h3>
+            <div class="space-y-4">
+                <div>
+                    <h4 class="text-lg font-semibold text-yellow-400 mb-2">Stats Debug:</h4>
+                    <pre class="bg-gray-900 p-4 rounded text-sm text-green-400 overflow-x-auto"><?php print_r($stats); ?></pre>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold text-yellow-400 mb-2">Recent Activities Count:</h4>
+                    <p class="text-gray-300"><?php echo count($recentActivities); ?> activities found</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold text-yellow-400 mb-2">Database Test Queries:</h4>
+                    <div class="space-y-2 text-sm">
+                        <?php
+                        try {
+                            $testQueries = [
+                                'tournaments' => "SELECT COUNT(*) as count FROM tournaments",
+                                'events' => "SELECT COUNT(*) as count FROM events",
+                                'members' => "SELECT COUNT(*) as count FROM committee_members WHERE is_current = true",
+                                'gallery' => "SELECT COUNT(*) as count FROM gallery",
+                                'sponsors' => "SELECT COUNT(*) as count FROM sponsors WHERE is_active = true"
+                            ];
+                            
+                            foreach ($testQueries as $name => $query) {
+                                $result = $database->querySingle($query);
+                                echo "<p class='text-gray-300'><span class='text-blue-400'>$name:</span> " . ($result['count'] ?? 'ERROR') . "</p>";
+                            }
+                        } catch (Exception $e) {
+                            echo "<p class='text-red-400'>Database error: " . $e->getMessage() . "</p>";
+                        }
+                        ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
     
     <!-- Mobile Menu Toggle -->
