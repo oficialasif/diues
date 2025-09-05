@@ -10,7 +10,8 @@ class ImageHandler {
     
     public function __construct($database) {
         $this->db = $database;
-        $this->baseUrl = rtrim($_ENV['FRONTEND_URL'] ?? 'https://diues.vercel.app', '/');
+        // Use the backend URL for image serving
+        $this->baseUrl = rtrim($_ENV['BACKEND_URL'] ?? 'https://diu-esports-backend.onrender.com', '/');
     }
     
     /**
