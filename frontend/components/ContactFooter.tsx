@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Mail, Phone, MapPin, Send, MessageCircle, Users, Calendar, Gamepad2, Trophy, Heart, ExternalLink } from 'lucide-react'
+import { Mail, Phone, MapPin, Send, Users } from 'lucide-react'
 
 const ContactFooter = () => {
   const [formData, setFormData] = useState({
@@ -24,24 +24,6 @@ const ContactFooter = () => {
     // Handle form submission
     console.log('Form submitted:', formData)
   }
-
-  const socialLinks = [
-    { name: 'Discord', icon: '💬', url: 'https://discord.gg/QaFeGR5akv', color: 'neon-green' },
-    { name: 'Twitch', icon: '📺', url: 'https://twitch.tv/diuesports', color: 'cyber-neon-purple' },
-    { name: 'Facebook', icon: '📘', url: 'https://facebook.com/diuesports', color: 'primary-blue' },
-    { name: 'YouTube', icon: '📹', url: 'https://youtube.com/diuesports', color: 'cyber-neon-pink' },
-    { name: 'Twitter', icon: '🐦', url: 'https://twitter.com/diuesports', color: 'neon-green' },
-    { name: 'Instagram', icon: '📷', url: 'https://instagram.com/diuesports', color: 'cyber-neon-pink' },
-  ]
-
-  const quickLinks = [
-    { name: 'About Us', url: '/about', icon: <Users className="w-4 h-4" /> },
-    { name: 'Tournaments', url: '#tournaments', icon: <Trophy className="w-4 h-4" /> },
-    { name: 'Events', url: '#events', icon: <Calendar className="w-4 h-4" /> },
-    { name: 'Games', url: '#games', icon: <Gamepad2 className="w-4 h-4" /> },
-    { name: 'Gallery', url: '#gallery', icon: <MessageCircle className="w-4 h-4" /> },
-    { name: 'Contact', url: '#contact', icon: <Mail className="w-4 h-4" /> },
-  ]
 
   const contactInfo = [
     { icon: <Mail className="w-5 h-5" />, label: 'Email', value: 'esports@diu.edu.bd', color: 'neon-green' },
@@ -250,93 +232,7 @@ const ContactFooter = () => {
         viewport={{ once: true }}
         className="border-t-2 border-neon-green"
       >
-        {/* Quick Links */}
-        <div className="py-12">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 max-w-6xl mx-auto">
-            {quickLinks.map((link, index) => (
-              <motion.a
-                key={index}
-                href={link.url}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.8 + index * 0.1 }}
-                viewport={{ once: true }}
-                className="group text-center"
-              >
-                <div className="p-4 rounded-lg bg-dark-secondary bg-opacity-50 backdrop-blur-sm border-2 border-transparent
-                               transition-all duration-300 hover:border-neon-green hover:scale-105">
-                  <div className="text-neon-green mb-2 group-hover:animate-bounce transition-all duration-300">
-                    {link.icon}
-                  </div>
-                  <div className="text-sm font-poppins text-white group-hover:text-neon-green transition-colors duration-300">
-                    {link.name}
-                  </div>
-                </div>
-              </motion.a>
-            ))}
-          </div>
-        </div>
 
-        {/* Follow Us Section */}
-        <div className="py-12 border-t border-neon-green border-opacity-30">
-          <div className="max-w-4xl mx-auto text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              viewport={{ once: true }}
-              className="mb-8"
-            >
-              <h3 className="text-3xl font-audiowide text-white mb-4">
-                Follow Us on Social Media
-              </h3>
-              <p className="text-lg text-gray-300 font-poppins mb-6">
-                Stay connected with the DIU Esports community and never miss an update!
-              </p>
-              
-              {/* Handle Display */}
-              <div className="mb-8">
-                <div className="inline-flex items-center gap-3 px-6 py-3 bg-dark-secondary border-2 border-neon-green rounded-full">
-                  <span className="text-neon-green text-lg font-orbitron">@</span>
-                  <span className="text-white text-xl font-audiowide">diuEsports</span>
-                  <div className="w-2 h-2 bg-neon-green rounded-full animate-pulse"></div>
-                </div>
-              </div>
-
-              {/* Social Media Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
-                {socialLinks.map((social, index) => (
-                  <motion.a
-                    key={index}
-                    href={social.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
-                    viewport={{ once: true }}
-                    className="group"
-                  >
-                    <div className={`p-4 rounded-xl border-2 bg-dark-secondary bg-opacity-50 backdrop-blur-sm
-                                   transition-all duration-300 hover:scale-105 text-center ${
-                      social.color === 'neon-green' ? 'border-neon-green hover:shadow-neon' :
-                      social.color === 'primary-blue' ? 'border-primary-blue hover:shadow-neon-blue' :
-                      social.color === 'cyber-neon-purple' ? 'border-cyber-neon-purple hover:shadow-neon' :
-                      'border-cyber-neon-pink hover:shadow-neon'
-                    }`}>
-                      <div className="text-2xl mb-2 group-hover:animate-bounce transition-all duration-300">
-                        {social.icon}
-                      </div>
-                      <div className="text-xs font-poppins text-gray-300 uppercase tracking-wider">
-                        {social.name}
-                      </div>
-                    </div>
-                  </motion.a>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-        </div>
 
         {/* About Us Prominent Section */}
         <div className="py-12 border-t border-neon-green border-opacity-30">
