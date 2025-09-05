@@ -25,6 +25,15 @@ const ContactFooter = () => {
     console.log('Form submitted:', formData)
   }
 
+  const socialLinks = [
+    { name: 'Discord', icon: '💬', url: 'https://discord.gg/QaFeGR5akv', color: 'neon-green' },
+    { name: 'Twitch', icon: '📺', url: 'https://twitch.tv/diuesports', color: 'cyber-neon-purple' },
+    { name: 'Facebook', icon: '📘', url: 'https://facebook.com/diuesports', color: 'primary-blue' },
+    { name: 'YouTube', icon: '📹', url: 'https://youtube.com/diuesports', color: 'cyber-neon-pink' },
+    { name: 'Twitter', icon: '🐦', url: 'https://twitter.com/diuesports', color: 'neon-green' },
+    { name: 'Instagram', icon: '📷', url: 'https://instagram.com/diuesports', color: 'cyber-neon-pink' },
+  ]
+
   const contactInfo = [
     { icon: <Mail className="w-5 h-5" />, label: 'Email', value: 'esports@diu.edu.bd', color: 'neon-green' },
     { icon: <Phone className="w-5 h-5" />, label: 'Phone', value: '+880 1234-567890', color: 'primary-blue' },
