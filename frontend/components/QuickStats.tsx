@@ -130,7 +130,7 @@ const QuickStats = () => {
       {/* Stats Grid */}
       <div
         ref={containerRef}
-        className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-7xl mx-auto"
+        className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 md:gap-6 max-w-7xl mx-auto"
       >
         {stats.map((stat, index) => (
           <motion.div

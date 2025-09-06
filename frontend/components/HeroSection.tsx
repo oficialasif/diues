@@ -163,7 +163,7 @@ export default function HeroSection() {
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 1.2 }}
-          className="grid grid-cols-3 gap-6 max-w-2xl mx-auto"
+          className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 max-w-2xl mx-auto"
         >
           {/* Tournaments Counter */}
           <motion.div 

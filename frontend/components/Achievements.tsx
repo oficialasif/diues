@@ -511,7 +511,7 @@ const Achievements = () => {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.8 }}
         viewport={{ once: true }}
-        className="mt-20 grid grid-cols-1 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
+        className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 md:gap-6 max-w-4xl mx-auto"
       >
         <div className="text-center">
           <div className="text-3xl font-orbitron text-neon-green mb-2">
