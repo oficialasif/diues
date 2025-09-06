@@ -554,6 +554,9 @@ if ($action === 'edit' && isset($_GET['id'])) {
                                                             <?php if ($member['player_semester']): ?>
                                                                 <div class="text-sm text-gray-400"><?php echo htmlspecialchars($member['player_semester']); ?></div>
                                                             <?php endif; ?>
+                                                            <?php if ($member['game_username']): ?>
+                                                                <div class="text-sm text-green-400 font-medium">Game: <?php echo htmlspecialchars($member['game_username']); ?></div>
+                                                            <?php endif; ?>
                                                         </div>
                                                     <?php endforeach; ?>
                                                 </div>

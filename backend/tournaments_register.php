@@ -83,23 +83,81 @@ try {
             throw new Exception('Tournament not found');
         }
         
-        // Insert registration
-        $stmt = $pdo->prepare("
-            INSERT INTO tournament_registrations (
-                tournament_id, team_name, team_type, captain_name, captain_email, 
-                captain_phone, captain_discord, captain_student_id, captain_department, 
-                captain_semester, status, registration_date, notes
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW(), ?)
-        ");
+        // Determine team type based on team members
+        $team_type = 'solo';
+        if (!empty($team_members) && is_array($team_members)) {
+            $team_type = count($team_members) === 1 ? 'duo' : 'squad';
+        }
         
-        $team_members_json = json_encode($team_members);
+        // Start transaction
+        $pdo->beginTransaction();
         
-        $stmt->execute([
-            $tournament_id, $team_name, 'solo', $player_name, $player_email,
-            $player_phone, '', '', '', '', $additional_info
-        ]);
-        
-        $registration_id = $pdo->lastInsertId();
+        try {
+            // Insert registration
+            $stmt = $pdo->prepare("
+                INSERT INTO tournament_registrations (
+                    tournament_id, team_name, team_type, captain_name, captain_email, 
+                    captain_phone, captain_discord, captain_student_id, captain_department, 
+                    captain_semester, status, registration_date, notes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW(), ?)
+            ");
+            
+            $stmt->execute([
+                $tournament_id, $team_name, $team_type, $player_name, $player_email,
+                $player_phone, '', '', '', '', $additional_info
+            ]);
+            
+            $registration_id = $pdo->lastInsertId();
+            
+            // Insert captain as first team member
+            $stmt = $pdo->prepare("
+                INSERT INTO tournament_team_members (
+                    registration_id, player_name, player_email, player_phone, player_discord, 
+                    player_student_id, player_department, player_semester, player_role, game_username
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'captain', ?)
+            ");
+            
+            $stmt->execute([
+                $registration_id, $player_name, $player_email, $player_phone, '', '', '', '', $player_ign
+            ]);
+            
+            // Insert additional team members if provided
+            if (!empty($team_members) && is_array($team_members)) {
+                foreach ($team_members as $member) {
+                    if (!empty($member['player_name'])) {
+                        $stmt = $pdo->prepare("
+                            INSERT INTO tournament_team_members (
+                                registration_id, player_name, player_email, player_phone, player_discord, 
+                                player_student_id, player_department, player_semester, player_role, game_username
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ");
+                        
+                        $stmt->execute([
+                            $registration_id,
+                            $member['player_name'],
+                            $member['player_email'] ?? '',
+                            $member['player_phone'] ?? '',
+                            $member['player_discord'] ?? '',
+                            $member['player_student_id'] ?? '',
+                            $member['player_department'] ?? '',
+                            $member['player_semester'] ?? '',
+                            $member['player_role'] ?? 'member',
+                            $member['game_username'] ?? ''
+                        ]);
+                    }
+                }
+            }
+            
+            // Update tournament participant count
+            $stmt = $pdo->prepare("UPDATE tournaments SET current_participants = current_participants + 1 WHERE id = ?");
+            $stmt->execute([$tournament_id]);
+            
+            $pdo->commit();
+            
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
         
         $result = [
             'success' => true,

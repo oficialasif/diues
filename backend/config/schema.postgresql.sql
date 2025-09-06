@@ -92,6 +92,7 @@ CREATE TABLE tournament_team_members (
     player_department VARCHAR(100),
     player_semester VARCHAR(20),
     player_role VARCHAR(20) DEFAULT 'member' CHECK (player_role IN ('captain', 'member', 'substitute')),
+    game_username VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (registration_id) REFERENCES tournament_registrations(id) ON DELETE CASCADE
 );
