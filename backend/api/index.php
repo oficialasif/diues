@@ -4,219 +4,152 @@
  * Main router for all API endpoints
  */
 
+// Handle CORS
+if (isset($_SERVER['HTTP_ORIGIN'])) {
+    header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
+    header('Access-Control-Allow-Credentials: true');
+    header('Access-Control-Max-Age: 86400');    // cache for 1 day
+}
+
+// Access-Control headers are received during OPTIONS requests
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD']))
+        header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE, PATCH");         
+
+    if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']))
+        header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
+
+    exit(0);
+}
+
 header('Content-Type: application/json');
 
-// CORS headers - Allow localhost and production
-$allowedOrigins = [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'https://diues.vercel.app'
-];
+require_once __DIR__ . '/../config/database.php';
 
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-if (in_array($origin, $allowedOrigins)) {
-    header('Access-Control-Allow-Origin: ' . $origin);
-} else {
-    header('Access-Control-Allow-Origin: *');
-}
-
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-header('Access-Control-Allow-Credentials: true');
-
-// Handle preflight requests
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
-
-// Determine if we're in production or development
-$isProduction = isset($_SERVER['HTTP_HOST']) && (
-    strpos($_SERVER['HTTP_HOST'], 'render.com') !== false ||
-    strpos($_SERVER['HTTP_HOST'], 'onrender.com') !== false ||
-    (isset($_ENV['APP_ENV']) && $_ENV['APP_ENV'] === 'production')
-);
-
-if ($isProduction) {
-    // Load production configuration for Render
-    require_once __DIR__ . '/../config/config.production.php';
-    require_once __DIR__ . '/../config/database.production.php';
-} else {
-    // Load local configuration for XAMPP
-    require_once __DIR__ . '/../config/database.php';
-}
-
-// Load auth only if it exists (for local development)
-if (file_exists(__DIR__ . '/../config/auth.php')) {
-    require_once __DIR__ . '/../config/auth.php';
-    $auth = new Auth($database);
-} else {
-    // For production, create a simple auth stub
-    $auth = null;
-}
-
-// Get request method and path
-$method = $_SERVER['REQUEST_METHOD'];
-$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-
-// Extract the path after /api
-if (preg_match('/\/api\/(.*)/', $path, $matches)) {
-    $path = $matches[1];
-} else {
-    $path = '';
-}
-$path = trim($path, '/');
-
-// Parse path segments
-$segments = explode('/', $path);
-$resource = $segments[0] ?? '';
-$id = $segments[1] ?? null;
-$action = $segments[2] ?? null;
-
-// Debug logging
-error_log("API Debug - Path: '$path', Resource: '$resource', ID: '$id', Action: '$action', Method: '$method'");
-
-// API Response helper function
-function apiResponse($data = null, $status = 200, $message = 'Success') {
+// Helper function for sending JSON response
+function apiResponse($data, $status = 200) {
     http_response_code($status);
-    echo json_encode([
-        'success' => $status < 400,
-        'message' => $message,
-        'data' => $data,
-        'timestamp' => date('c')
-    ]);
-    exit();
+    echo json_encode($data);
+    exit;
 }
 
-// Error response helper
+// Helper function for sending Error response
 function apiError($message, $status = 400) {
-    apiResponse(null, $status, $message);
+    http_response_code($status);
+    echo json_encode(['error' => $message]);
+    exit;
 }
 
-// Handle base API endpoint
-if (empty($resource)) {
-    apiResponse([
-        'message' => 'DIU Esports Community Portal API',
-        'version' => '1.0.0',
-        'endpoints' => [
-            'tournaments' => '/api/tournaments',
-            'events' => '/api/events',
-            'committee' => '/api/committee',
-            'gallery' => '/api/gallery',
-            'sponsors' => '/api/sponsors',
-            'achievements' => '/api/achievements',
-            'settings' => '/api/settings',
-            'stats' => '/api/stats',
-            'countdown' => '/api/countdown',
-            'auth' => '/api/auth'
-        ],
-        'documentation' => 'Check individual endpoints for detailed information'
-    ], 200, 'API is running');
+// Basic router
+$requestUri = $_SERVER['REQUEST_URI'];
+$method = $_SERVER['REQUEST_METHOD'];
+
+// Parse URL to get resource
+// URL format: /api/resource/id
+$basePath = '/api';
+if (strpos($requestUri, $basePath) === 0) {
+    $path = substr($requestUri, strlen($basePath));
+} else {
+    $path = $requestUri;
 }
 
-// Validate resource
-$validResources = ['tournaments', 'events', 'committee', 'gallery', 'sponsors', 'achievements', 'settings', 'auth', 'stats', 'countdown'];
-if (!in_array($resource, $validResources)) {
-    apiError('Invalid resource', 404);
-}
+$parts = explode('/', trim($path, '/'));
+$resource = $parts[0] ?? '';
+$id = $parts[1] ?? null;
 
 // Route the request
-try {
-    switch ($resource) {
-        case 'tournaments':
-            require_once __DIR__ . '/handlers/tournaments.php';
-            $handler = new TournamentsHandler($database);
-            break;
-            
-        case 'events':
-            require_once __DIR__ . '/handlers/events.php';
-            $handler = new EventsHandler($database);
-            break;
-            
-        case 'committee':
-            require_once __DIR__ . '/handlers/committee.php';
-            $handler = new CommitteeHandler($database);
-            break;
-            
-        case 'gallery':
-            require_once __DIR__ . '/handlers/gallery.php';
-            $handler = new GalleryHandler($database);
-            break;
-            
-        case 'sponsors':
-            require_once __DIR__ . '/handlers/sponsors.php';
-            $handler = new SponsorsHandler($database);
-            break;
-            
-        case 'achievements':
-            require_once __DIR__ . '/handlers/achievements.php';
-            $handler = new AchievementsHandler($database);
-            break;
-            
-        case 'settings':
-            require_once __DIR__ . '/handlers/settings.php';
-            $handler = new SettingsHandler($database);
-            break;
-            
-        case 'auth':
-            require_once __DIR__ . '/handlers/auth.php';
-            $handler = new AuthHandler($database);
-            break;
-            
-        case 'stats':
-            require_once __DIR__ . '/handlers/stats.php';
-            $handler = new StatsHandler($database);
-            break;
-            
-        case 'countdown':
-            require_once __DIR__ . '/handlers/countdown.php';
-            $handler = new CountdownHandler($database);
-            break;
-            
-        default:
-            apiError('Resource not found', 404);
-    }
-    
-    // Handle the request
-    if (isset($handler)) {
-        switch ($method) {
-            case 'GET':
-                if ($id) {
-                    $result = $handler->get($id);
-                } else {
-                    $result = $handler->getAll();
-                }
-                break;
-                
-            case 'POST':
-                $input = json_decode(file_get_contents('php://input'), true);
-                if ($action === 'login') {
-                    $result = $handler->login($input);
-                } else {
-                    $result = $handler->create($input);
-                }
-                break;
-                
-            case 'PUT':
-                $input = json_decode(file_get_contents('php://input'), true);
-                $result = $handler->update($id, $input);
-                break;
-                
-            case 'DELETE':
-                $result = $handler->delete($id);
-                break;
-                
-            default:
-                apiError('Method not allowed', 405);
-        }
+switch ($resource) {
+    case '':
+        apiResponse(['message' => 'DIU Esports API Running', 'version' => '1.0']);
+        break;
         
-        if (isset($result)) {
-            apiResponse($result);
+    case 'health':
+        apiResponse(['status' => 'ok']);
+        break;
+
+    case 'games':
+        require_once __DIR__ . '/../games.php';
+        $handler = new GamesHandler();
+        if ($method === 'GET') {
+            if ($id) $handler->getById($id);
+            else $handler->getAll();
+        } elseif ($method === 'POST') {
+            // Check auth (simplified for now)
+            $data = json_decode(file_get_contents('php://input'), true);
+            $handler->create($data);
         }
-    }
-    
-} catch (Exception $e) {
-    error_log("API Error: " . $e->getMessage());
-    apiError('Internal server error: ' . $e->getMessage(), 500);
+        break;
+        
+    case 'tournaments':
+        require_once __DIR__ . '/../tournaments.php';
+        $handler = new TournamentsHandler();
+        if ($method === 'GET') $handler->getAll();
+        break;
+        
+    case 'tournaments-register':
+         require_once __DIR__ . '/../tournaments_register.php';
+         $handler = new TournamentRegistrationHandler();
+         if ($method === 'POST') {
+             $data = json_decode(file_get_contents('php://input'), true);
+             $handler->register($data);
+         }
+         break;
+
+    case 'events':
+        require_once __DIR__ . '/../events.php';
+        $handler = new EventsHandler();
+        if ($method === 'GET') $handler->getAll();
+        break;
+        
+    case 'committee':
+        require_once __DIR__ . '/../committee.php';
+        $handler = new CommitteeHandler();
+        if ($method === 'GET') $handler->getAll();
+        break;
+
+    case 'gallery':
+        require_once __DIR__ . '/../gallery.php';
+        $handler = new GalleryHandler();
+        if ($method === 'GET') $handler->getAll();
+        break;
+        
+    case 'sponsors':
+        require_once __DIR__ . '/../sponsors.php';
+        $handler = new SponsorsHandler();
+        if ($method === 'GET') $handler->getAll();
+        break;
+        
+    case 'settings':
+        require_once __DIR__ . '/../settings.php';
+        $handler = new SettingsHandler();
+        if ($method === 'GET') $handler->getAll();
+        break;
+        
+    case 'achievements':
+        require_once __DIR__ . '/../achievements.php';
+        $handler = new AchievementsHandler();
+        if ($method === 'GET') $handler->getAll();
+        break;
+
+    case 'stats':
+        require_once __DIR__ . '/../stats.php';
+        $handler = new StatsHandler();
+        if ($method === 'GET') $handler->getAll();
+        break;
+
+    case 'about':
+        require_once __DIR__ . '/../about.php';
+        $handler = new AboutHandler();
+        if ($method === 'GET') $handler->getAll();
+        break;
+
+    default:
+        // Try file based routing for simple scripts if exists in api folder
+        if (file_exists(__DIR__ . "/$resource.php")) {
+            require_once __DIR__ . "/$resource.php";
+        } else {
+            apiError('Endpoint not found', 404);
+        }
+        break;
 }
 ?>

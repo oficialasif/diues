@@ -14,29 +14,23 @@ class CloudinaryService {
     private $uploadApi;
     
     public function __construct() {
-        // Set environment variables directly for Cloudinary SDK
-        putenv('CLOUDINARY_CLOUD_NAME=dn7ucxk8a');
-        putenv('CLOUDINARY_API_KEY=oNE1GqwM-WYb_REcNFr39eqwCY0');
-        putenv('CLOUDINARY_API_SECRET=246184425446679');
-        putenv('CLOUDINARY_URL=cloudinary://oNE1GqwM-WYb_REcNFr39eqwCY0:246184425446679@dn7ucxk8a');
-        
-        // Also set in $_ENV
-        $_ENV['CLOUDINARY_CLOUD_NAME'] = 'dn7ucxk8a';
-        $_ENV['CLOUDINARY_API_KEY'] = 'oNE1GqwM-WYb_REcNFr39eqwCY0';
-        $_ENV['CLOUDINARY_API_SECRET'] = '246184425446679';
-        $_ENV['CLOUDINARY_URL'] = 'cloudinary://oNE1GqwM-WYb_REcNFr39eqwCY0:246184425446679@dn7ucxk8a';
+        // Load from environment or fallback to empty/defaults
+        // In production, these should be set in the environment
+        if (!getenv('CLOUDINARY_URL') && isset($_ENV['CLOUDINARY_URL'])) {
+            putenv("CLOUDINARY_URL={$_ENV['CLOUDINARY_URL']}");
+        }
         
         // Debug: Log the values being used
-        error_log("Cloudinary Config - Cloud Name: dn7ucxk8a");
-        error_log("Cloudinary Config - API Key: oNE1GqwM...");
-        error_log("Cloudinary Config - API Secret: 246184425...");
+        error_log("Cloudinary Config - Cloud Name: " . getenv('CLOUDINARY_CLOUD_NAME'));
+        error_log("Cloudinary Config - API Key: " . getenv('CLOUDINARY_API_KEY'));
+        error_log("Cloudinary Config - API Secret: " . substr(getenv('CLOUDINARY_API_SECRET'), 0, 5) . "...");
         
         // Configure Cloudinary using environment variables
         Configuration::instance([
             'cloud' => [
-                'cloud_name' => 'dn7ucxk8a',
-                'api_key' => 'oNE1GqwM-WYb_REcNFr39eqwCY0',
-                'api_secret' => '246184425446679'
+                'cloud_name' => getenv('CLOUDINARY_CLOUD_NAME') ?: ($_ENV['CLOUDINARY_CLOUD_NAME'] ?? ''),
+                'api_key' => getenv('CLOUDINARY_API_KEY') ?: ($_ENV['CLOUDINARY_API_KEY'] ?? ''),
+                'api_secret' => getenv('CLOUDINARY_API_SECRET') ?: ($_ENV['CLOUDINARY_API_SECRET'] ?? '')
             ],
             'url' => [
                 'secure' => true

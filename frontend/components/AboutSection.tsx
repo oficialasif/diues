@@ -1,10 +1,54 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Target, Users, Zap, Trophy, Shield, Heart } from 'lucide-react'
 
+// Define types for our content
+interface AboutContentItem {
+  id: number;
+  section_name: string;
+  title: string;
+  content: string;
+  image_url?: string;
+  created_at?: string;
+}
+
+interface AboutData {
+  mission?: AboutContentItem;
+  vision?: AboutContentItem;
+  values?: AboutContentItem[];
+}
+
 const AboutSection = () => {
-  const features = [
+  const [data, setData] = useState<AboutData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchAboutData = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/about`)
+        const result = await response.json()
+        
+        if (result.success) {
+          setData(result.data)
+        } else {
+          setError('Failed to load content')
+        }
+      } catch (err) {
+        // console.error('Error fetching about data:', err)
+        setError('Error connecting to server')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAboutData()
+  }, [])
+
+  // Hardcoded fallback data in case API fails or is loading the first time
+  const fallbackFeatures = [
     {
       icon: <Target className="w-6 h-6" />,
       title: 'Competitive Excellence',
@@ -40,6 +84,23 @@ const AboutSection = () => {
     }
     return colorMap[color] || colorMap['neon-green']
   }
+  
+  // Helper to get icon for dynamic content based on title or index
+  const getIconForValue = (index: number) => {
+     const icons = [
+        <Target key="target" className="w-6 h-6" />,
+        <Users key="users" className="w-6 h-6" />,
+        <Zap key="zap" className="w-6 h-6" />,
+        <Trophy key="trophy" className="w-6 h-6" />
+     ];
+     return icons[index % icons.length];
+  }
+
+  // Helper to get color for dynamic content
+  const getColorForValue = (index: number) => {
+      const colors = ['neon-green', 'primary-blue', 'cyber-neon-purple', 'cyber-neon-pink'];
+      return colors[index % colors.length];
+  }
 
   return (
     <div className="container mx-auto px-4">
@@ -62,21 +123,21 @@ const AboutSection = () => {
 
           {/* Mission Statement */}
           <div className="space-y-4">
-            <h3 className="text-2xl font-russo text-neon-green">Our Mission</h3>
+            <h3 className="text-2xl font-russo text-neon-green">
+                {data?.mission?.title || 'Our Mission'}
+            </h3>
             <p className="text-lg text-gray-300 font-poppins leading-relaxed">
-              To create an inclusive, competitive, and innovative esports ecosystem that empowers 
-              students to excel in gaming while developing essential life skills, leadership qualities, 
-              and a strong sense of community.
+              {data?.mission?.content || 'To create an inclusive, competitive, and innovative esports ecosystem that empowers students to excel in gaming while developing essential life skills, leadership qualities, and a strong sense of community.'}
             </p>
           </div>
 
           {/* Vision Statement */}
           <div className="space-y-4">
-            <h3 className="text-2xl font-russo text-primary-blue">Our Vision</h3>
+            <h3 className="text-2xl font-russo text-primary-blue">
+                {data?.vision?.title || 'Our Vision'}
+            </h3>
             <p className="text-lg text-gray-300 font-poppins leading-relaxed">
-              To be the leading university esports community in the region, recognized for excellence 
-              in competitive gaming, community building, and professional development, while setting 
-              new standards for esports education and innovation.
+              {data?.vision?.content || 'To be the leading university esports community in the region, recognized for excellence in competitive gaming, community building, and professional development, while setting new standards for esports education and innovation.'}
             </p>
           </div>
 
@@ -84,28 +145,37 @@ const AboutSection = () => {
           <div className="space-y-4">
             <h3 className="text-2xl font-russo text-cyber-neon-purple">Core Values</h3>
             <div className="grid grid-cols-1 gap-4">
-              {features.map((feature, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className={`p-4 rounded-lg border-l-4 bg-dark-secondary bg-opacity-50 backdrop-blur-sm ${getColorClasses(feature.color)}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1">
-                      {feature.icon}
-                    </div>
-                    <div>
-                      <h4 className="font-russo text-lg mb-2">{feature.title}</h4>
-                      <p className="text-gray-300 text-sm font-poppins leading-relaxed">
-                        {feature.description}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+              {(data?.values?.length ? data.values : fallbackFeatures).map((feature: any, index: number) => {
+                  // Normalize data structure between API and fallback
+                  const isApiData = 'section_name' in feature;
+                  const title = isApiData ? feature.title : feature.title;
+                  const description = isApiData ? feature.content : feature.description;
+                  const icon = isApiData ? getIconForValue(index) : feature.icon;
+                  const color = isApiData ? getColorForValue(index) : feature.color;
+
+                  return (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: index * 0.1 }}
+                      viewport={{ once: true }}
+                      className={`p-4 rounded-lg border-l-4 bg-dark-secondary bg-opacity-50 backdrop-blur-sm ${getColorClasses(color)}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          {icon}
+                        </div>
+                        <div>
+                          <h4 className="font-russo text-lg mb-2">{title}</h4>
+                          <p className="text-gray-300 text-sm font-poppins leading-relaxed">
+                            {description}
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+              })}
             </div>
           </div>
 

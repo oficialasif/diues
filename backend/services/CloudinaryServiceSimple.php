@@ -15,10 +15,8 @@ class CloudinaryServiceSimple {
         $this->apiKey = $_ENV['CLOUDINARY_API_KEY'] ?? getenv('CLOUDINARY_API_KEY') ?? 'oNE1GqwM-WYb_REcNFr39eqwCY0';
         $this->apiSecret = $_ENV['CLOUDINARY_API_SECRET'] ?? getenv('CLOUDINARY_API_SECRET') ?? '246184425446679';
         
-        // Force the correct values for now
-        $this->cloudName = 'dn7ucxk8a';
-        $this->apiKey = 'oNE1GqwM-WYb_REcNFr39eqwCY0';
-        $this->apiSecret = '246184425446679';
+        // Use values from environment
+
     }
     
     /**
