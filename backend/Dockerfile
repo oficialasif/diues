@@ -25,7 +25,8 @@ COPY . .
 RUN composer install --no-dev --optimize-autoloader
 
 # Set permissions (Apache usually runs as www-data)
-RUN chown -R www-data:www-data /var/www/html \
+RUN mkdir -p /var/www/html/uploads \
+    && chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/uploads
 
 # Expose port 80 (Render maps to this)
