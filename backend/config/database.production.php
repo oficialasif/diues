@@ -32,7 +32,7 @@ class Database {
         try {
             if ($this->driver === 'pgsql') {
                 // PostgreSQL connection
-                $dsn = "pgsql:host={$this->host};port={$this->port};dbname={$this->db_name}";
+                $dsn = "pgsql:host={$this->host};port={$this->port};dbname={$this->db_name};sslmode=require";
                 $this->conn = new PDO($dsn, $this->username, $this->password, [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
